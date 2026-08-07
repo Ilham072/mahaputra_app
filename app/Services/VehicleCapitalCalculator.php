@@ -17,4 +17,14 @@ class VehicleCapitalCalculator
 
         return $showroomCapital + $collaboratorCapital;
     }
+
+    public function totalVehicleCost(int $taxAmount, int $additionalCosts): int
+    {
+        return $taxAmount + $additionalCosts;
+    }
+
+    public function finalCapital(int $initialCapital, int $totalVehicleCost): int
+    {
+        return $initialCapital + $totalVehicleCost;
+    }
 }

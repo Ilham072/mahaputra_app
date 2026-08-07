@@ -35,5 +35,23 @@ export type VehicleDetail = VehicleSummary & {
     collaborator_capital: number;
     tax_status: 'ON' | 'OFF';
     tax_amount: number;
+    additional_costs_total: number;
+    total_vehicle_cost: number;
     initial_capital: number;
+    final_capital: number;
+    costs: VehicleCost[];
+};
+
+export type VehicleCost = {
+    id: number;
+    cost_date: string;
+    category: 'DICO' | 'ELECTRICAL_UNDERCARRIAGE' | 'OTHER';
+    category_label: string;
+    amount: number;
+    description: string | null;
+};
+
+export type VehicleCostCategoryOption = {
+    value: VehicleCost['category'];
+    label: string;
 };

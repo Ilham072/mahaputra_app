@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\CreateVehicleAction;
 use App\Actions\UpdateVehicleAction;
 use App\Enums\VehicleCapitalType;
+use App\Enums\VehicleCostCategory;
 use App\Enums\VehicleStatus;
 use App\Enums\VehicleTaxStatus;
 use App\Http\Requests\VehicleRequest;
@@ -70,10 +71,16 @@ class VehicleController extends Controller
 
     public function show(Vehicle $vehicle): Response
     {
-        $vehicle->load(['brand', 'collaborator']);
+        $vehicle->load(['brand', 'collaborator', 'costs']);
 
         return Inertia::render('Vehicles/Show', [
             'vehicle' => $this->detail($vehicle),
+            'costCategoryOptions' => collect(VehicleCostCategory::cases())
+                ->map(fn (VehicleCostCategory $category): array => [
+                    'value' => $category->value,
+                    'label' => $category->label(),
+                ])
+                ->values(),
         ]);
     }
 
@@ -151,6 +158,17 @@ class VehicleController extends Controller
      */
     private function detail(Vehicle $vehicle): array
     {
+        $additionalCostsTotal = $vehicle->costs->sum('amount');
+        $initialCapital = $this->capitalCalculator->initialCapital(
+            $vehicle->capital_type,
+            $vehicle->showroom_capital,
+            $vehicle->collaborator_capital,
+        );
+        $totalVehicleCost = $this->capitalCalculator->totalVehicleCost(
+            $vehicle->tax_amount,
+            $additionalCostsTotal,
+        );
+
         return [
             ...$this->summary($vehicle),
             'brand_id' => $vehicle->brand_id,
@@ -159,11 +177,21 @@ class VehicleController extends Controller
             'collaborator_capital' => $vehicle->collaborator_capital,
             'tax_status' => $vehicle->tax_status->value,
             'tax_amount' => $vehicle->tax_amount,
-            'initial_capital' => $this->capitalCalculator->initialCapital(
-                $vehicle->capital_type,
-                $vehicle->showroom_capital,
-                $vehicle->collaborator_capital,
-            ),
+            'additional_costs_total' => $additionalCostsTotal,
+            'total_vehicle_cost' => $totalVehicleCost,
+            'initial_capital' => $initialCapital,
+            'final_capital' => $this->capitalCalculator->finalCapital($initialCapital, $totalVehicleCost),
+            'costs' => $vehicle->costs
+                ->sortByDesc('cost_date')
+                ->values()
+                ->map(fn ($cost): array => [
+                    'id' => $cost->id,
+                    'cost_date' => $cost->cost_date->toDateString(),
+                    'category' => $cost->category->value,
+                    'category_label' => $cost->category->label(),
+                    'amount' => $cost->amount,
+                    'description' => $cost->description,
+                ]),
         ];
     }
 
