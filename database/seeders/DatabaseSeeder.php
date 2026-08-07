@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -24,7 +25,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@mahaputra.local',
         ], [
             'name' => 'Admin Showroom',
-            'role' => 'admin',
+            'role' => UserRole::Admin->value,
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
         ]);
@@ -33,7 +34,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'owner@mahaputra.local',
         ], [
             'name' => 'Owner Showroom',
-            'role' => 'owner',
+            'role' => UserRole::Owner->value,
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
         ]);
