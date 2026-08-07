@@ -11,7 +11,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, ReactNode } from 'react';
-import { VehicleCostCategoryOption, VehicleDetail } from './types';
+import {
+    VehicleCostCategoryOption,
+    VehicleDetail,
+    VehicleDocument,
+} from './types';
 
 type VehicleShowProps = {
     vehicle: VehicleDetail;
@@ -408,6 +412,17 @@ export default function VehicleShow({
                         </CardContent>
                     </Card>
                 </div>
+
+                <div className="grid gap-6 xl:grid-cols-2">
+                    {vehicle.documents.map((document) => (
+                        <DocumentCard
+                            key={document.document_type}
+                            vehicleId={vehicle.id}
+                            document={document}
+                            canManage={isAdmin}
+                        />
+                    ))}
+                </div>
             </div>
         </AuthenticatedLayout>
     );
@@ -431,5 +446,152 @@ function InfoGrid({
                 </div>
             ))}
         </dl>
+    );
+}
+
+function DocumentCard({
+    vehicleId,
+    document,
+    canManage,
+}: {
+    vehicleId: number;
+    document: VehicleDocument;
+    canManage: boolean;
+}) {
+    const form = useForm<{
+        is_available: boolean;
+        document: File | null;
+        note: string;
+    }>({
+        is_available: document.is_available,
+        document: null,
+        note: document.note ?? '',
+    });
+
+    const submit: FormEventHandler = (event) => {
+        event.preventDefault();
+
+        form.post(
+            route('vehicles.documents.update', [
+                vehicleId,
+                document.document_type,
+            ]),
+            {
+                preserveScroll: true,
+                forceFormData: true,
+                onSuccess: () => form.reset('document'),
+            },
+        );
+    };
+
+    return (
+        <Card>
+            <CardContent className="space-y-5">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <CardTitle>{document.document_label}</CardTitle>
+                        <p className="mt-1 text-sm text-neutral-500">
+                            Dokumen internal kendaraan
+                        </p>
+                    </div>
+                    <span
+                        className={
+                            document.is_available
+                                ? 'inline-flex rounded-md border border-green-200 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700'
+                                : 'inline-flex rounded-md border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700'
+                        }
+                    >
+                        {document.is_available ? 'Tersedia' : 'Belum tersedia'}
+                    </span>
+                </div>
+
+                <InfoGrid
+                    items={[
+                        ['File', document.original_name ?? '-'],
+                        ['Tipe File', document.mime_type ?? '-'],
+                        ['Catatan', document.note ?? '-'],
+                    ]}
+                />
+
+                {document.download_url && (
+                    <a href={document.download_url}>
+                        <Button type="button" variant="outline">
+                            Unduh Dokumen
+                        </Button>
+                    </a>
+                )}
+
+                {canManage && (
+                    <form onSubmit={submit} className="space-y-4 border-t border-neutral-200 pt-5">
+                        <label className="flex items-center gap-3 rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2">
+                            <input
+                                type="checkbox"
+                                className="rounded border-neutral-300 text-yellow-500 focus:ring-yellow-500"
+                                checked={form.data.is_available}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'is_available',
+                                        event.target.checked,
+                                    )
+                                }
+                            />
+                            <span className="text-sm font-medium text-neutral-800">
+                                Dokumen tersedia
+                            </span>
+                        </label>
+
+                        <div>
+                            <InputLabel
+                                htmlFor={`${document.document_type}-file`}
+                                value="File Dokumen"
+                            />
+                            <input
+                                id={`${document.document_type}-file`}
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white text-sm text-neutral-700 file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                onChange={(event) =>
+                                    form.setData(
+                                        'document',
+                                        event.target.files?.[0] ?? null,
+                                    )
+                                }
+                            />
+                            <InputError
+                                className="mt-2"
+                                message={form.errors.document}
+                            />
+                        </div>
+
+                        <div>
+                            <InputLabel
+                                htmlFor={`${document.document_type}-note`}
+                                value="Catatan"
+                            />
+                            <textarea
+                                id={`${document.document_type}-note`}
+                                className="mt-1 block min-h-20 w-full rounded-md border-neutral-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                                value={form.data.note}
+                                onChange={(event) =>
+                                    form.setData('note', event.target.value)
+                                }
+                            />
+                            <InputError
+                                className="mt-2"
+                                message={form.errors.note}
+                            />
+                        </div>
+
+                        <Button
+                            type="submit"
+                            disabled={form.processing}
+                            isLoading={form.processing}
+                        >
+                            Simpan {document.document_label}
+                        </Button>
+                    </form>
+                )}
+            </CardContent>
+        </Card>
     );
 }

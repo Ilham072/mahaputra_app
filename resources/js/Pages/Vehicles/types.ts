@@ -40,6 +40,7 @@ export type VehicleDetail = VehicleSummary & {
     initial_capital: number;
     final_capital: number;
     costs: VehicleCost[];
+    documents: VehicleDocument[];
 };
 
 export type VehicleCost = {
@@ -53,5 +54,21 @@ export type VehicleCost = {
 
 export type VehicleCostCategoryOption = {
     value: VehicleCost['category'];
+    label: string;
+};
+
+export type VehicleDocument = {
+    id: number | null;
+    document_type: 'STNK' | 'BPKB';
+    document_label: string;
+    is_available: boolean;
+    original_name: string | null;
+    mime_type: string | null;
+    note: string | null;
+    download_url: string | null;
+};
+
+export type VehicleDocumentTypeOption = {
+    value: VehicleDocument['document_type'];
     label: string;
 };

@@ -4,6 +4,7 @@ use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleCostController;
+use App\Http\Controllers\VehicleDocumentController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -26,6 +27,9 @@ Route::middleware(['auth', 'role:admin'])->group(function (): void {
     Route::get('/vehicles/create', [VehicleController::class, 'create'])->name('vehicles.create');
     Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
     Route::post('/vehicles/{vehicle}/costs', [VehicleCostController::class, 'store'])->name('vehicles.costs.store');
+    Route::post('/vehicles/{vehicle}/documents/{documentType}', [VehicleDocumentController::class, 'update'])
+        ->whereIn('documentType', ['STNK', 'BPKB'])
+        ->name('vehicles.documents.update');
     Route::get('/vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
     Route::patch('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
 });
@@ -33,6 +37,8 @@ Route::middleware(['auth', 'role:admin'])->group(function (): void {
 Route::middleware(['auth', 'role:admin,owner'])->group(function (): void {
     Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
     Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
+    Route::get('/vehicles/{vehicle}/documents/{document}/download', [VehicleDocumentController::class, 'download'])
+        ->name('vehicles.documents.download');
 });
 
 Route::middleware(['auth', 'role:admin'])

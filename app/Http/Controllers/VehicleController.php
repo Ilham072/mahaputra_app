@@ -6,6 +6,7 @@ use App\Actions\CreateVehicleAction;
 use App\Actions\UpdateVehicleAction;
 use App\Enums\VehicleCapitalType;
 use App\Enums\VehicleCostCategory;
+use App\Enums\VehicleDocumentType;
 use App\Enums\VehicleStatus;
 use App\Enums\VehicleTaxStatus;
 use App\Http\Requests\VehicleRequest;
@@ -71,7 +72,7 @@ class VehicleController extends Controller
 
     public function show(Vehicle $vehicle): Response
     {
-        $vehicle->load(['brand', 'collaborator', 'costs']);
+        $vehicle->load(['brand', 'collaborator', 'costs', 'documents']);
 
         return Inertia::render('Vehicles/Show', [
             'vehicle' => $this->detail($vehicle),
@@ -79,6 +80,12 @@ class VehicleController extends Controller
                 ->map(fn (VehicleCostCategory $category): array => [
                     'value' => $category->value,
                     'label' => $category->label(),
+                ])
+                ->values(),
+            'documentTypeOptions' => collect(VehicleDocumentType::cases())
+                ->map(fn (VehicleDocumentType $type): array => [
+                    'value' => $type->value,
+                    'label' => $type->label(),
                 ])
                 ->values(),
         ]);
@@ -192,6 +199,26 @@ class VehicleController extends Controller
                     'amount' => $cost->amount,
                     'description' => $cost->description,
                 ]),
+            'documents' => collect(VehicleDocumentType::cases())
+                ->map(function (VehicleDocumentType $type) use ($vehicle): array {
+                    $document = $vehicle->documents->first(
+                        fn ($document): bool => $document->document_type === $type,
+                    );
+
+                    return [
+                        'id' => $document?->id,
+                        'document_type' => $type->value,
+                        'document_label' => $type->label(),
+                        'is_available' => $document?->is_available ?? false,
+                        'original_name' => $document?->original_name,
+                        'mime_type' => $document?->mime_type,
+                        'note' => $document?->note,
+                        'download_url' => $document?->file_path
+                            ? route('vehicles.documents.download', [$vehicle, $document])
+                            : null,
+                    ];
+                })
+                ->values(),
         ];
     }
 
