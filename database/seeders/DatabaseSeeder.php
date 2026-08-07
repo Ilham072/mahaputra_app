@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Enums\UserRole;
+use App\Models\Area;
+use App\Models\FinancingProvider;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -38,5 +40,19 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
         ]);
+
+        foreach (['Bone', 'Sinjai', 'Bulukumba', 'Pinrang'] as $area) {
+            Area::query()->updateOrCreate(
+                ['name' => $area],
+                ['is_active' => true],
+            );
+        }
+
+        foreach (['Adira', 'OTO', 'SMS', 'MUF'] as $provider) {
+            FinancingProvider::query()->updateOrCreate(
+                ['name' => $provider],
+                ['is_active' => true],
+            );
+        }
     }
 }
