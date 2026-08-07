@@ -1,8 +1,8 @@
 import Badge from '@/Components/Badge';
 
-type VehicleStatus = 'PREPARATION' | 'READY' | 'BOOKING' | 'SOLD';
-type CapitalType = 'UMUM' | 'KHUSUS';
-type PaymentType = 'CASH' | 'CREDIT';
+export type VehicleStatus = 'PREPARATION' | 'READY' | 'BOOKING' | 'SOLD';
+export type CapitalType = 'UMUM' | 'KHUSUS';
+export type PaymentType = 'CASH' | 'CREDIT';
 
 type StatusBadgeProps =
     | {

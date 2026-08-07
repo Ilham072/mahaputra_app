@@ -22,12 +22,11 @@ const navigation: NavSection[] = [
     {
         label: 'Kendaraan',
         items: [
-            { label: 'Data Kendaraan', href: '/vehicles', disabled: true },
+            { label: 'Data Kendaraan', href: '/vehicles' },
             {
                 label: 'Tambah Kendaraan',
                 href: '/vehicles/create',
                 adminOnly: true,
-                disabled: true,
             },
         ],
     },
