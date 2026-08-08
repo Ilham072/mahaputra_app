@@ -2,8 +2,11 @@ import Button from '@/Components/Button';
 import { Card } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
 import EmptyState from '@/Components/EmptyState';
+import FormField from '@/Components/FormField';
 import PageHeader from '@/Components/PageHeader';
+import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
+import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -81,81 +84,94 @@ export default function VehicleIndex({
                 <Card className="p-4">
                     <form
                         onSubmit={submit}
-                        className="grid gap-3 md:grid-cols-[minmax(180px,1fr)_180px_180px_180px_auto_auto]"
+                        className="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_180px_180px_180px_auto_auto]"
                     >
-                        <input
-                            className="rounded-md border-neutral-300 text-sm shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
-                            placeholder="Cari no polisi atau tipe"
-                            value={filterData.search}
-                            onChange={(event) =>
-                                setFilterData({
-                                    ...filterData,
-                                    search: event.target.value,
-                                })
-                            }
-                        />
+                        <FormField label="Pencarian">
+                            <TextInput
+                                type="search"
+                                placeholder="Cari no polisi atau tipe"
+                                value={filterData.search}
+                                onChange={(event) =>
+                                    setFilterData({
+                                        ...filterData,
+                                        search: event.target.value,
+                                    })
+                                }
+                            />
+                        </FormField>
 
-                        <select
-                            className="rounded-md border-neutral-300 text-sm shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
-                            value={filterData.status}
-                            onChange={(event) =>
-                                setFilterData({
-                                    ...filterData,
-                                    status: event.target.value,
-                                })
-                            }
+                        <FormField label="Status">
+                            <SelectInput
+                                value={filterData.status}
+                                onChange={(event) =>
+                                    setFilterData({
+                                        ...filterData,
+                                        status: event.target.value,
+                                    })
+                                }
+                            >
+                                <option value="">Semua Status</option>
+                                {options.statuses.map((status) => (
+                                    <option
+                                        key={status.value}
+                                        value={status.value}
+                                    >
+                                        {status.label}
+                                    </option>
+                                ))}
+                            </SelectInput>
+                        </FormField>
+
+                        <FormField label="Merk">
+                            <SelectInput
+                                value={filterData.brand_id}
+                                onChange={(event) =>
+                                    setFilterData({
+                                        ...filterData,
+                                        brand_id: event.target.value,
+                                    })
+                                }
+                            >
+                                <option value="">Semua Merk</option>
+                                {options.brands.map((brand) => (
+                                    <option key={brand.id} value={brand.id}>
+                                        {brand.name}
+                                    </option>
+                                ))}
+                            </SelectInput>
+                        </FormField>
+
+                        <FormField label="Tipe Modal">
+                            <SelectInput
+                                value={filterData.capital_type}
+                                onChange={(event) =>
+                                    setFilterData({
+                                        ...filterData,
+                                        capital_type: event.target.value,
+                                    })
+                                }
+                            >
+                                <option value="">Semua Modal</option>
+                                {options.capitalTypes.map((type) => (
+                                    <option key={type.value} value={type.value}>
+                                        {type.label}
+                                    </option>
+                                ))}
+                            </SelectInput>
+                        </FormField>
+
+                        <Button
+                            type="submit"
+                            variant="secondary"
+                            className="self-end"
                         >
-                            <option value="">Semua Status</option>
-                            {options.statuses.map((status) => (
-                                <option key={status.value} value={status.value}>
-                                    {status.label}
-                                </option>
-                            ))}
-                        </select>
-
-                        <select
-                            className="rounded-md border-neutral-300 text-sm shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
-                            value={filterData.brand_id}
-                            onChange={(event) =>
-                                setFilterData({
-                                    ...filterData,
-                                    brand_id: event.target.value,
-                                })
-                            }
-                        >
-                            <option value="">Semua Merk</option>
-                            {options.brands.map((brand) => (
-                                <option key={brand.id} value={brand.id}>
-                                    {brand.name}
-                                </option>
-                            ))}
-                        </select>
-
-                        <select
-                            className="rounded-md border-neutral-300 text-sm shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
-                            value={filterData.capital_type}
-                            onChange={(event) =>
-                                setFilterData({
-                                    ...filterData,
-                                    capital_type: event.target.value,
-                                })
-                            }
-                        >
-                            <option value="">Semua Modal</option>
-                            {options.capitalTypes.map((type) => (
-                                <option key={type.value} value={type.value}>
-                                    {type.label}
-                                </option>
-                            ))}
-                        </select>
-
-                        <Button type="submit" variant="secondary">
                             Filter
                         </Button>
                         <Button
                             type="button"
                             variant="outline"
                             onClick={clearFilters}
+                            className="self-end"
                         >
                             Bersihkan
                         </Button>

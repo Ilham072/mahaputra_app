@@ -2,6 +2,7 @@ import Button from '@/Components/Button';
 import { Card, CardContent, CardTitle } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
 import EmptyState from '@/Components/EmptyState';
+import KpiCard from '@/Components/KpiCard';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import TextInput from '@/Components/TextInput';
@@ -287,17 +288,12 @@ export default function ReportsIndex({
 
                 <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                     {summaryCards.map((item) => (
-                        <Card key={item.label} className="p-5">
-                            <div className="text-sm font-medium text-neutral-500">
-                                {item.label}
-                            </div>
-                            <div className="mt-3 text-2xl font-bold tabular-nums text-neutral-950">
-                                {item.value}
-                            </div>
-                            <div className="mt-2 text-xs text-neutral-500">
-                                {item.caption}
-                            </div>
-                        </Card>
+                        <KpiCard
+                            key={item.label}
+                            label={item.label}
+                            value={item.value}
+                            caption={item.caption}
+                        />
                     ))}
                 </section>
 

@@ -2,6 +2,7 @@ import Button from '@/Components/Button';
 import { Card, CardContent, CardTitle } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
 import EmptyState from '@/Components/EmptyState';
+import KpiCard from '@/Components/KpiCard';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -130,7 +131,7 @@ export default function Dashboard({
                             <input
                                 id="dashboard-month"
                                 type="month"
-                                className="h-10 rounded-md border-neutral-300 text-sm shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                                className="h-10 rounded-md border-neutral-300 text-sm shadow-sm focus:border-brand-yellow-500 focus:ring-brand-yellow-500"
                                 value={month}
                                 onChange={(event) => setMonth(event.target.value)}
                             />
@@ -143,17 +144,12 @@ export default function Dashboard({
 
                 <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                     {kpis.map((item) => (
-                        <Card key={item.label} className="p-5">
-                            <div className="text-sm font-medium text-neutral-500">
-                                {item.label}
-                            </div>
-                            <div className="mt-3 text-2xl font-bold tabular-nums text-neutral-950">
-                                {item.value}
-                            </div>
-                            <div className="mt-2 text-xs text-neutral-500">
-                                {item.caption}
-                            </div>
-                        </Card>
+                        <KpiCard
+                            key={item.label}
+                            label={item.label}
+                            value={item.value}
+                            caption={item.caption}
+                        />
                     ))}
                 </section>
 
@@ -277,7 +273,7 @@ export default function Dashboard({
                                         <Link
                                             key={vehicle.id}
                                             href={route('vehicles.show', vehicle.id)}
-                                            className="block p-4 transition hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-yellow-500"
+                                            className="block p-4 transition hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-yellow-500"
                                         >
                                             <div className="flex items-start justify-between gap-3">
                                                 <div className="min-w-0">
@@ -344,7 +340,7 @@ function TrendCard({
                                     </div>
                                     <div className="h-3 overflow-hidden rounded-full bg-neutral-100">
                                         <div
-                                            className="h-full rounded-full bg-yellow-500"
+                                            className="h-full rounded-full bg-brand-yellow-500"
                                             style={{ width }}
                                         />
                                     </div>
