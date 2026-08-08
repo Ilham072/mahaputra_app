@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\OperationalExpenseController;
 use App\Http\Controllers\ProfileController;
@@ -9,15 +10,14 @@ use App\Http\Controllers\VehicleCostController;
 use App\Http\Controllers\VehicleDocumentController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function (): RedirectResponse {
     return redirect()->route(auth()->check() ? 'dashboard' : 'login');
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware('auth')->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'role:admin,owner'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
