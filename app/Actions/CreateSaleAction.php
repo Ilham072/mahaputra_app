@@ -11,6 +11,8 @@ use App\Services\SaleProfitCalculator;
 use App\Services\VehicleCapitalCalculator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class CreateSaleAction
 {
@@ -24,73 +26,84 @@ class CreateSaleAction
      */
     public function execute(Vehicle $vehicle, array $data): Sale
     {
-        return DB::transaction(function () use ($vehicle, $data): Sale {
-            $vehicle = Vehicle::query()
-                ->with('costs')
-                ->lockForUpdate()
-                ->findOrFail($vehicle->id);
+        $storedKtpPath = null;
 
-            abort_if($vehicle->status === VehicleStatus::Sold || $vehicle->sale()->exists(), 422, 'Kendaraan sudah terjual.');
+        try {
+            return DB::transaction(function () use ($vehicle, $data, &$storedKtpPath): Sale {
+                $vehicle = Vehicle::query()
+                    ->with('costs')
+                    ->lockForUpdate()
+                    ->findOrFail($vehicle->id);
 
-            $customer = $this->createCustomer($vehicle, $data);
-            $snapshots = $this->snapshots($vehicle);
-            $paymentType = PaymentType::from($data['payment_type']);
-            $creditTotal = 0;
-            $profit = $this->profitCalculator->cashProfit(
-                (int) $data['selling_price'],
-                $snapshots['final_capital_snapshot'],
-            );
+                abort_if($vehicle->status === VehicleStatus::Sold || $vehicle->sale()->exists(), 422, 'Kendaraan sudah terjual.');
 
-            if ($paymentType === PaymentType::Credit) {
-                $creditTotal = $this->profitCalculator->creditTotal(
-                    (int) $data['dp'],
-                    (int) $data['outstanding_dp'],
-                    (int) $data['financing_disbursement'],
-                    (int) $data['refund'],
-                );
-                $profit = $this->profitCalculator->creditProfit(
-                    $creditTotal,
+                $customer = $this->createCustomer($vehicle, $data, $storedKtpPath);
+                $snapshots = $this->snapshots($vehicle);
+                $paymentType = PaymentType::from($data['payment_type']);
+                $creditTotal = 0;
+                $profit = $this->profitCalculator->cashProfit(
+                    (int) $data['selling_price'],
                     $snapshots['final_capital_snapshot'],
                 );
+
+                if ($paymentType === PaymentType::Credit) {
+                    $creditTotal = $this->profitCalculator->creditTotal(
+                        (int) $data['dp'],
+                        (int) $data['outstanding_dp'],
+                        (int) $data['financing_disbursement'],
+                        (int) $data['refund'],
+                    );
+                    $profit = $this->profitCalculator->creditProfit(
+                        $creditTotal,
+                        $snapshots['final_capital_snapshot'],
+                    );
+                }
+
+                $sale = Sale::query()->create([
+                    'vehicle_id' => $vehicle->id,
+                    'customer_id' => $customer->id,
+                    'employee_id' => $data['employee_id'],
+                    'area_id' => $data['area_id'],
+                    'sale_date' => $data['sale_date'],
+                    'payment_type' => $paymentType->value,
+                    'selling_price' => $data['selling_price'],
+                    'credit_total' => $creditTotal,
+                    ...$snapshots,
+                    'profit_snapshot' => $profit,
+                ]);
+
+                $sale->payment()->create([
+                    'financing_provider_id' => $paymentType === PaymentType::Credit
+                        ? $data['financing_provider_id']
+                        : null,
+                    'dp' => $paymentType === PaymentType::Credit ? $data['dp'] : 0,
+                    'outstanding_dp' => $paymentType === PaymentType::Credit ? $data['outstanding_dp'] : 0,
+                    'financing_disbursement' => $paymentType === PaymentType::Credit ? $data['financing_disbursement'] : 0,
+                    'refund' => $paymentType === PaymentType::Credit ? $data['refund'] : 0,
+                ]);
+
+                $vehicle->update(['status' => VehicleStatus::Sold->value]);
+
+                return $sale->load(['vehicle.brand', 'customer', 'employee', 'area', 'payment.financingProvider']);
+            });
+        } catch (Throwable $exception) {
+            if ($storedKtpPath) {
+                Storage::disk('local')->delete($storedKtpPath);
             }
 
-            $sale = Sale::query()->create([
-                'vehicle_id' => $vehicle->id,
-                'customer_id' => $customer->id,
-                'employee_id' => $data['employee_id'],
-                'area_id' => $data['area_id'],
-                'sale_date' => $data['sale_date'],
-                'payment_type' => $paymentType->value,
-                'selling_price' => $data['selling_price'],
-                'credit_total' => $creditTotal,
-                ...$snapshots,
-                'profit_snapshot' => $profit,
-            ]);
-
-            $sale->payment()->create([
-                'financing_provider_id' => $paymentType === PaymentType::Credit
-                    ? $data['financing_provider_id']
-                    : null,
-                'dp' => $paymentType === PaymentType::Credit ? $data['dp'] : 0,
-                'outstanding_dp' => $paymentType === PaymentType::Credit ? $data['outstanding_dp'] : 0,
-                'financing_disbursement' => $paymentType === PaymentType::Credit ? $data['financing_disbursement'] : 0,
-                'refund' => $paymentType === PaymentType::Credit ? $data['refund'] : 0,
-            ]);
-
-            $vehicle->update(['status' => VehicleStatus::Sold->value]);
-
-            return $sale->load(['vehicle.brand', 'customer', 'employee', 'area', 'payment.financingProvider']);
-        });
+            throw $exception;
+        }
     }
 
     /**
      * @param  array<string, mixed>  $data
      */
-    private function createCustomer(Vehicle $vehicle, array $data): Customer
+    private function createCustomer(Vehicle $vehicle, array $data, ?string &$storedKtpPath): Customer
     {
         /** @var UploadedFile $ktp */
         $ktp = $data['customer_ktp'];
         $path = $ktp->store("customers/vehicles/{$vehicle->id}/ktp", 'local');
+        $storedKtpPath = $path;
 
         return Customer::query()->create([
             'name' => $data['customer_name'],

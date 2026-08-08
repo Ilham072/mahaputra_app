@@ -155,6 +155,38 @@ class VehicleDocumentTest extends TestCase
             ->assertSessionHasErrors('document');
     }
 
+    public function test_replacing_vehicle_document_deletes_old_private_file_after_save(): void
+    {
+        Storage::fake('local');
+
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $vehicle = $this->createVehicle();
+        $oldPath = 'vehicles/'.$vehicle->id.'/documents/old-stnk.pdf';
+        Storage::disk('local')->put($oldPath, 'old document');
+
+        $document = $vehicle->documents()->create([
+            'document_type' => VehicleDocumentType::Stnk->value,
+            'is_available' => true,
+            'file_path' => $oldPath,
+            'original_name' => 'old-stnk.pdf',
+            'mime_type' => 'application/pdf',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('vehicles.documents.update', [$vehicle, VehicleDocumentType::Stnk->value]), [
+                'is_available' => true,
+                'document' => UploadedFile::fake()->create('new-stnk.pdf', 100, 'application/pdf'),
+                'note' => 'Dokumen baru.',
+            ])
+            ->assertRedirect(route('vehicles.show', $vehicle));
+
+        $document->refresh();
+
+        Storage::disk('local')->assertMissing($oldPath);
+        Storage::disk('local')->assertExists($document->file_path);
+        $this->assertSame('new-stnk.pdf', $document->original_name);
+    }
+
     private function createVehicle(): Vehicle
     {
         $brand = VehicleBrand::query()->create(['name' => 'Toyota']);

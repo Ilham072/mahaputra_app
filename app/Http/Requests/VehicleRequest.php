@@ -33,7 +33,15 @@ class VehicleRequest extends FormRequest
     {
         $vehicle = $this->route('vehicle');
         $vehicleId = $vehicle instanceof Vehicle ? $vehicle->id : null;
+        $hasSale = $vehicle instanceof Vehicle && $vehicle->sale()->exists();
         $capitalType = (string) $this->input('capital_type');
+        $statusRules = ['required', Rule::enum(VehicleStatus::class)];
+
+        if ($hasSale) {
+            $statusRules[] = Rule::in([VehicleStatus::Sold->value]);
+        } else {
+            $statusRules[] = Rule::notIn([VehicleStatus::Sold->value]);
+        }
 
         return [
             'purchase_date' => ['required', 'date'],
@@ -70,7 +78,7 @@ class VehicleRequest extends FormRequest
             'tax_status' => ['required', Rule::enum(VehicleTaxStatus::class)],
             'tax_amount' => ['nullable', 'integer', 'min:0'],
             'asking_price' => ['required', 'integer', 'min:0'],
-            'status' => ['required', Rule::enum(VehicleStatus::class)],
+            'status' => $statusRules,
         ];
     }
 }

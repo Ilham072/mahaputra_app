@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 class VehicleDocumentController extends Controller
 {
@@ -23,23 +24,34 @@ class VehicleDocumentController extends Controller
             'vehicle_id' => $vehicle->id,
             'document_type' => $documentType->value,
         ]);
+        $oldFilePath = $document->file_path;
+        $newFilePath = null;
 
         if ($request->hasFile('document')) {
-            if ($document->file_path) {
-                Storage::disk('local')->delete($document->file_path);
-            }
-
             $file = $request->file('document');
-            $path = $file->store("vehicles/{$vehicle->id}/documents", 'local');
+            $newFilePath = $file->store("vehicles/{$vehicle->id}/documents", 'local');
 
-            $document->file_path = $path;
+            $document->file_path = $newFilePath;
             $document->original_name = $file->getClientOriginalName();
             $document->mime_type = $file->getMimeType();
         }
 
         $document->is_available = $data['is_available'];
         $document->note = $data['note'] ?? null;
-        $document->save();
+
+        try {
+            $document->save();
+        } catch (Throwable $exception) {
+            if ($newFilePath) {
+                Storage::disk('local')->delete($newFilePath);
+            }
+
+            throw $exception;
+        }
+
+        if ($newFilePath && $oldFilePath && $oldFilePath !== $newFilePath) {
+            Storage::disk('local')->delete($oldFilePath);
+        }
 
         return Redirect::route('vehicles.show', $vehicle)
             ->with('success', $documentType->label().' berhasil diperbarui.');

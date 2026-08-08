@@ -2,11 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Enums\PaymentType;
 use App\Enums\UserRole;
 use App\Enums\VehicleCapitalType;
 use App\Enums\VehicleStatus;
 use App\Enums\VehicleTaxStatus;
+use App\Models\Area;
 use App\Models\Collaborator;
+use App\Models\Customer;
+use App\Models\Employee;
+use App\Models\Sale;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleBrand;
@@ -188,6 +193,47 @@ class VehicleManagementTest extends TestCase
             ->assertSessionHasErrors('plate_number');
     }
 
+    public function test_vehicle_cannot_be_marked_sold_manually_without_sale(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $brand = VehicleBrand::query()->create(['name' => 'Toyota']);
+
+        $this->actingAs($admin)
+            ->from(route('vehicles.create'))
+            ->post(route('vehicles.store'), [
+                ...$this->vehiclePayload([
+                    'brand_id' => $brand->id,
+                    'status' => VehicleStatus::Sold->value,
+                ]),
+            ])
+            ->assertRedirect(route('vehicles.create'))
+            ->assertSessionHasErrors('status');
+    }
+
+    public function test_sold_vehicle_status_cannot_be_changed_away_from_sold(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $brand = VehicleBrand::query()->create(['name' => 'Toyota']);
+        $vehicle = Vehicle::query()->create($this->vehiclePayload([
+            'brand_id' => $brand->id,
+            'status' => VehicleStatus::Sold->value,
+        ]));
+        $this->createSaleForVehicle($vehicle);
+
+        $this->actingAs($admin)
+            ->from(route('vehicles.edit', $vehicle))
+            ->patch(route('vehicles.update', $vehicle), [
+                ...$this->vehiclePayload([
+                    'brand_id' => $brand->id,
+                    'status' => VehicleStatus::Ready->value,
+                ]),
+            ])
+            ->assertRedirect(route('vehicles.edit', $vehicle))
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame(VehicleStatus::Sold, $vehicle->refresh()->status);
+    }
+
     /**
      * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
@@ -209,5 +255,32 @@ class VehicleManagementTest extends TestCase
             'status' => VehicleStatus::Preparation->value,
             ...$overrides,
         ];
+    }
+
+    private function createSaleForVehicle(Vehicle $vehicle): Sale
+    {
+        $employee = Employee::query()->create(['name' => 'Admin PIC']);
+        $area = Area::query()->create(['name' => 'Bone']);
+        $customer = Customer::query()->create([
+            'name' => 'Pembeli',
+            'whatsapp' => '08123456789',
+            'address' => 'Jl. Merdeka',
+            'ktp_file_path' => 'customer-ktp/test.jpg',
+        ]);
+
+        return Sale::query()->create([
+            'vehicle_id' => $vehicle->id,
+            'customer_id' => $customer->id,
+            'employee_id' => $employee->id,
+            'area_id' => $area->id,
+            'sale_date' => '2026-08-08',
+            'payment_type' => PaymentType::Cash->value,
+            'selling_price' => 150000000,
+            'credit_total' => 0,
+            'initial_capital_snapshot' => 120000000,
+            'vehicle_cost_snapshot' => 0,
+            'final_capital_snapshot' => 120000000,
+            'profit_snapshot' => 30000000,
+        ]);
     }
 }

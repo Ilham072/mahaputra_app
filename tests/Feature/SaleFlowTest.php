@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\CreateSaleAction;
 use App\Enums\PaymentType;
 use App\Enums\UserRole;
 use App\Enums\VehicleCapitalType;
@@ -14,6 +15,7 @@ use App\Models\FinancingProvider;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleBrand;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -208,6 +210,30 @@ class SaleFlowTest extends TestCase
         $this->actingAs($owner)
             ->get(route('sales.ktp.download', $sale))
             ->assertOk();
+    }
+
+    public function test_customer_ktp_file_is_removed_when_sale_write_fails(): void
+    {
+        Storage::fake('local');
+
+        $vehicle = $this->createVehicle();
+        $this->createSaleOptions();
+
+        try {
+            app(CreateSaleAction::class)->execute($vehicle, [
+                ...$this->salePayload(),
+                'area_id' => 999,
+            ]);
+        } catch (QueryException) {
+            $this->assertSame([], Storage::disk('local')->allFiles('customers'));
+            $this->assertDatabaseMissing('customers', [
+                'name' => 'Andi',
+            ]);
+
+            return;
+        }
+
+        $this->fail('Expected database write to fail.');
     }
 
     /**

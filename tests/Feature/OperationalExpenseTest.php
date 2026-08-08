@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Actions\CreateOperationalExpenseAction;
 use App\Enums\UserRole;
 use App\Models\ExpenseCategory;
 use App\Models\OperationalExpense;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -165,5 +167,26 @@ class OperationalExpenseTest extends TestCase
                 ->has('expenses.data', 1)
                 ->where('summary.filtered_total', 500000)
             );
+    }
+
+    public function test_operational_proof_file_is_removed_when_database_write_fails(): void
+    {
+        Storage::fake('local');
+
+        try {
+            app(CreateOperationalExpenseAction::class)->execute([
+                'category_id' => 999,
+                'transaction_date' => '2026-08-08',
+                'amount' => 500000,
+                'description' => 'Invalid category',
+                'proof' => UploadedFile::fake()->create('proof.pdf', 100, 'application/pdf'),
+            ]);
+        } catch (QueryException) {
+            $this->assertSame([], Storage::disk('local')->allFiles('operational-expenses/proofs'));
+
+            return;
+        }
+
+        $this->fail('Expected database write to fail.');
     }
 }
