@@ -6,8 +6,14 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ReactNode } from 'react';
+import axios from 'axios';
+import { lazy, ReactNode, Suspense, useState } from 'react';
+import { InvoicePdfPayload } from './InvoicePdfDocument';
 import { SaleDetail } from './types';
+
+const InvoicePdfDownloadAction = lazy(
+    () => import('./InvoicePdfDownloadAction'),
+);
 
 type SaleShowProps = {
     sale: SaleDetail;
@@ -15,6 +21,26 @@ type SaleShowProps = {
 
 export default function SaleShow({ sale }: SaleShowProps) {
     const { flash } = usePage<PageProps>().props;
+    const [invoicePayload, setInvoicePayload] =
+        useState<InvoicePdfPayload | null>(null);
+    const [invoiceLoading, setInvoiceLoading] = useState(false);
+    const [invoiceError, setInvoiceError] = useState<string | null>(null);
+
+    const loadInvoiceData = async () => {
+        setInvoiceLoading(true);
+        setInvoiceError(null);
+
+        try {
+            const response = await axios.get<InvoicePdfPayload>(
+                route('sales.invoice-data', sale.id),
+            );
+            setInvoicePayload(response.data);
+        } catch {
+            setInvoiceError('Data invoice gagal disiapkan.');
+        } finally {
+            setInvoiceLoading(false);
+        }
+    };
 
     return (
         <AuthenticatedLayout
@@ -23,9 +49,17 @@ export default function SaleShow({ sale }: SaleShowProps) {
                     title="Detail Penjualan"
                     description={`${sale.vehicle} / ${sale.plate_number}`}
                     actions={
-                        <Link href={route('sales.index')}>
-                            <Button type="button" variant="outline">Kembali</Button>
-                        </Link>
+                        <div className="flex gap-2">
+                            <Link href={route('sales.index')}>
+                                <Button type="button" variant="outline">Kembali</Button>
+                            </Link>
+                            <InvoiceExportButton
+                                payload={invoicePayload}
+                                isLoading={invoiceLoading}
+                                error={invoiceError}
+                                onPrepare={loadInvoiceData}
+                            />
+                        </div>
                     }
                 />
             }
@@ -86,6 +120,59 @@ export default function SaleShow({ sale }: SaleShowProps) {
             </div>
         </AuthenticatedLayout>
     );
+}
+
+function InvoiceExportButton({
+    payload,
+    isLoading,
+    error,
+    onPrepare,
+}: {
+    payload: InvoicePdfPayload | null;
+    isLoading: boolean;
+    error: string | null;
+    onPrepare: () => void;
+}) {
+    if (payload) {
+        return (
+            <Suspense
+                fallback={
+                    <span className={invoiceLinkClasses('pointer-events-none opacity-70')}>
+                        Menyiapkan Invoice
+                    </span>
+                }
+            >
+                <InvoicePdfDownloadAction
+                    payload={payload}
+                    className={invoiceLinkClasses()}
+                />
+            </Suspense>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            <Button
+                type="button"
+                variant="outline"
+                onClick={onPrepare}
+                disabled={isLoading}
+                isLoading={isLoading}
+            >
+                Invoice PDF
+            </Button>
+            {error && <span className="text-xs text-red-600">{error}</span>}
+        </div>
+    );
+}
+
+function invoiceLinkClasses(extra = '') {
+    return [
+        'inline-flex h-10 items-center justify-center rounded-md border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-900 transition duration-150 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2',
+        extra,
+    ]
+        .filter(Boolean)
+        .join(' ');
 }
 
 function InfoGrid({ items }: { items: Array<[string, ReactNode]> }) {

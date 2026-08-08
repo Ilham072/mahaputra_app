@@ -44,6 +44,8 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 - Buat penjualan CASH untuk kendaraan tersebut.
 - Pastikan field kredit tidak wajib dan tidak tersimpan pada pembayaran CASH.
 - Pastikan kendaraan berubah menjadi SOLD.
+- Buka detail penjualan dan klik Invoice PDF.
+- Pastikan invoice tidak memuat modal, biaya internal, laba, atau file KTP.
 - Buka Laporan, filter periode Agustus 2026.
 - Pastikan transaksi CASH tampil dan bisa diexport Excel/PDF.
 
@@ -57,6 +59,8 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 - Buat penjualan CREDIT dengan provider pembiayaan.
 - Isi DP, DP Terutang, Cair Pembiayaan, dan Refund.
 - Pastikan laba dihitung dari total nilai penjualan kredit dikurangi modal akhir.
+- Buka detail penjualan dan klik Invoice PDF.
+- Pastikan rincian kredit customer-facing tampil tanpa modal/laba internal.
 - Buka Laporan, filter periode Agustus 2026.
 - Pastikan transaksi CREDIT tampil dan bisa diexport Excel/PDF.
 
@@ -66,6 +70,7 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 - Pastikan Owner dapat membuka Dashboard dan Laporan.
 - Pastikan Owner dapat melihat foto kendaraan tetapi tidak dapat menambah, menghapus, atau mengubah cover foto.
 - Pastikan Owner dapat mengunduh PDF Internal kendaraan.
+- Pastikan Owner dapat mengunduh Invoice PDF dari detail penjualan.
 - Pastikan Owner tidak dapat membuat, mengubah, atau menghapus data transaksi.
 - Filter laporan periode Agustus 2026.
 - Export Excel dan PDF dari laporan.
@@ -76,6 +81,7 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 - Excel terbuka dan memuat baris penjualan CASH dan CREDIT.
 - PDF terunduh dari browser dan memuat ringkasan laporan.
 - PDF Internal kendaraan memuat modal, biaya, dokumen, dan status kendaraan.
+- Invoice PDF pelanggan tidak memuat modal, biaya internal, laba, atau KTP.
 - Export tetap mengikuti filter periode, payment type, area, dan PIC.
 - Tidak ada KTP/STNK/BPKB asli yang terekspos di hasil export.
 

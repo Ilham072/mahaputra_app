@@ -51,6 +51,7 @@ Route::middleware(['auth', 'role:admin,owner'])->group(function (): void {
     Route::get('/reports/export/pdf-data', [ReportController::class, 'exportPdfData'])->name('reports.export.pdf-data');
     Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])->name('reports.export.excel');
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+    Route::get('/sales/{sale}/invoice-data', [SaleController::class, 'invoiceData'])->name('sales.invoice-data');
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
     Route::get('/sales/{sale}/ktp', [SaleController::class, 'downloadKtp'])->name('sales.ktp.download');
     Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');

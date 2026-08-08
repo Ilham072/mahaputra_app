@@ -11,6 +11,7 @@ use App\Models\FinancingProvider;
 use App\Models\Sale;
 use App\Models\Vehicle;
 use App\Services\VehicleCapitalCalculator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -73,6 +74,50 @@ class SaleController extends Controller
 
         return Inertia::render('Sales/Show', [
             'sale' => $this->detail($sale),
+        ]);
+    }
+
+    public function invoiceData(Sale $sale): JsonResponse
+    {
+        $sale->load(['vehicle.brand', 'customer', 'employee', 'area', 'payment.financingProvider']);
+
+        return response()->json([
+            'generated_at' => now()->toDateTimeString(),
+            'invoice' => [
+                'number' => 'INV-'.$sale->sale_date->format('Ymd').'-'.str_pad((string) $sale->id, 5, '0', STR_PAD_LEFT),
+                'sale_date' => $sale->sale_date->toDateString(),
+                'payment_type' => $sale->payment_type->value,
+                'transaction_total' => $sale->payment_type === PaymentType::Credit
+                    ? $sale->credit_total
+                    : $sale->selling_price,
+            ],
+            'vehicle' => [
+                'brand' => $sale->vehicle->brand?->name,
+                'type' => $sale->vehicle->type,
+                'plate_number' => $sale->vehicle->plate_number,
+                'year' => $sale->vehicle->year,
+                'color' => $sale->vehicle->color,
+            ],
+            'customer' => [
+                'name' => $sale->customer->name,
+                'whatsapp' => $sale->customer->whatsapp,
+                'alternative_whatsapp' => $sale->customer->alternative_whatsapp,
+                'address' => $sale->customer->address,
+            ],
+            'showroom' => [
+                'area' => $sale->area->name,
+                'employee' => $sale->employee->name,
+            ],
+            'payment' => [
+                'financing_provider' => $sale->payment_type === PaymentType::Credit
+                    ? $sale->payment?->financingProvider?->name
+                    : null,
+                'selling_price' => $sale->selling_price,
+                'dp' => $sale->payment_type === PaymentType::Credit ? $sale->payment?->dp ?? 0 : 0,
+                'outstanding_dp' => $sale->payment_type === PaymentType::Credit ? $sale->payment?->outstanding_dp ?? 0 : 0,
+                'financing_disbursement' => $sale->payment_type === PaymentType::Credit ? $sale->payment?->financing_disbursement ?? 0 : 0,
+                'refund' => $sale->payment_type === PaymentType::Credit ? $sale->payment?->refund ?? 0 : 0,
+            ],
         ]);
     }
 
