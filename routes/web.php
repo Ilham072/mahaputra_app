@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MasterDataController;
+use App\Http\Controllers\OperationalExpenseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\VehicleController;
@@ -25,6 +26,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function (): void {
+    Route::post('/operations', [OperationalExpenseController::class, 'store'])->name('operations.store');
     Route::get('/vehicles/create', [VehicleController::class, 'create'])->name('vehicles.create');
     Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
     Route::post('/vehicles/{vehicle}/costs', [VehicleCostController::class, 'store'])->name('vehicles.costs.store');
@@ -38,6 +40,8 @@ Route::middleware(['auth', 'role:admin'])->group(function (): void {
 });
 
 Route::middleware(['auth', 'role:admin,owner'])->group(function (): void {
+    Route::get('/operations', [OperationalExpenseController::class, 'index'])->name('operations.index');
+    Route::get('/operations/{expense}/proof', [OperationalExpenseController::class, 'downloadProof'])->name('operations.proof.download');
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
     Route::get('/sales/{sale}/ktp', [SaleController::class, 'downloadKtp'])->name('sales.ktp.download');
