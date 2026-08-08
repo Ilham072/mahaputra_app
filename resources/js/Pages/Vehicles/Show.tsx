@@ -59,9 +59,25 @@ export default function VehicleShow({
                                 </Button>
                             </Link>
                             {isAdmin && (
-                                <Link href={route('vehicles.edit', vehicle.id)}>
-                                    <Button type="button">Edit</Button>
-                                </Link>
+                                <>
+                                    <Link href={route('vehicles.edit', vehicle.id)}>
+                                        <Button type="button" variant="outline">
+                                            Edit
+                                        </Button>
+                                    </Link>
+                                    {vehicle.status !== 'SOLD' && (
+                                        <Link
+                                            href={route(
+                                                'vehicles.sales.create',
+                                                vehicle.id,
+                                            )}
+                                        >
+                                            <Button type="button">
+                                                Terjual
+                                            </Button>
+                                        </Link>
+                                    )}
+                                </>
                             )}
                         </div>
                     }

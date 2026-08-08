@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SaleController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleCostController;
 use App\Http\Controllers\VehicleDocumentController;
@@ -30,11 +31,16 @@ Route::middleware(['auth', 'role:admin'])->group(function (): void {
     Route::post('/vehicles/{vehicle}/documents/{documentType}', [VehicleDocumentController::class, 'update'])
         ->whereIn('documentType', ['STNK', 'BPKB'])
         ->name('vehicles.documents.update');
+    Route::get('/vehicles/{vehicle}/sell', [SaleController::class, 'create'])->name('vehicles.sales.create');
+    Route::post('/vehicles/{vehicle}/sell', [SaleController::class, 'store'])->name('vehicles.sales.store');
     Route::get('/vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
     Route::patch('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
 });
 
 Route::middleware(['auth', 'role:admin,owner'])->group(function (): void {
+    Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+    Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
+    Route::get('/sales/{sale}/ktp', [SaleController::class, 'downloadKtp'])->name('sales.ktp.download');
     Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
     Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
     Route::get('/vehicles/{vehicle}/documents/{document}/download', [VehicleDocumentController::class, 'download'])
