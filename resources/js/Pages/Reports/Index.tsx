@@ -6,16 +6,18 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { cn } from '@/lib/classNames';
 import { Head, Link, router } from '@inertiajs/react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
 import axios from 'axios';
-import { FormEventHandler, ReactNode, useState } from 'react';
-import ReportPdfDocument, {
+import { FormEventHandler, lazy, ReactNode, Suspense, useState } from 'react';
+import {
     ReportFilters,
     ReportPdfPayload,
     ReportSummary,
     SaleReportRow,
 } from './ReportPdfDocument';
+
+const PdfDownloadAction = lazy(() => import('./PdfDownloadAction'));
 
 type Option = {
     id: number;
@@ -154,106 +156,132 @@ export default function ReportsIndex({
                 <Card className="p-4">
                     <form
                         onSubmit={submit}
-                        className="grid gap-3 lg:grid-cols-[1fr_1fr_1.2fr_1fr_1fr_1fr_1fr_auto_auto]"
+                        className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_minmax(220px,1.3fr)_1fr_1fr_1fr_1fr_auto_auto]"
                     >
-                        <TextInput
-                            type="date"
-                            value={filterData.date_from}
-                            onChange={(event) =>
-                                setFilterData({
-                                    ...filterData,
-                                    date_from: event.target.value,
-                                })
-                            }
-                        />
-                        <TextInput
-                            type="date"
-                            value={filterData.date_to}
-                            onChange={(event) =>
-                                setFilterData({
-                                    ...filterData,
-                                    date_to: event.target.value,
-                                })
-                            }
-                        />
-                        <TextInput
-                            type="search"
-                            placeholder="Cari kendaraan, polisi, pembeli"
-                            value={filterData.search}
-                            onChange={(event) =>
-                                setFilterData({
-                                    ...filterData,
-                                    search: event.target.value,
-                                })
-                            }
-                        />
-                        <Select
-                            value={filterData.area_id}
-                            onChange={(value) =>
-                                setFilterData({ ...filterData, area_id: value })
-                            }
-                        >
-                            <option value="">Semua Area</option>
-                            {options.areas.map((area) => (
-                                <option key={area.id} value={area.id}>
-                                    {area.name}
-                                </option>
-                            ))}
-                        </Select>
-                        <Select
-                            value={filterData.employee_id}
-                            onChange={(value) =>
-                                setFilterData({
-                                    ...filterData,
-                                    employee_id: value,
-                                })
-                            }
-                        >
-                            <option value="">Semua PIC</option>
-                            {options.employees.map((employee) => (
-                                <option key={employee.id} value={employee.id}>
-                                    {employee.name}
-                                </option>
-                            ))}
-                        </Select>
-                        <Select
-                            value={filterData.payment_type}
-                            onChange={(value) =>
-                                setFilterData({
-                                    ...filterData,
-                                    payment_type: value,
-                                })
-                            }
-                        >
-                            <option value="">Semua Bayar</option>
-                            {options.paymentTypes.map((type) => (
-                                <option key={type.value} value={type.value}>
-                                    {type.label}
-                                </option>
-                            ))}
-                        </Select>
-                        <Select
-                            value={filterData.capital_type}
-                            onChange={(value) =>
-                                setFilterData({
-                                    ...filterData,
-                                    capital_type: value,
-                                })
-                            }
-                        >
-                            <option value="">UMUM/KHUSUS</option>
-                            {options.capitalTypes.map((type) => (
-                                <option key={type.value} value={type.value}>
-                                    {type.label}
-                                </option>
-                            ))}
-                        </Select>
-                        <Button type="submit" variant="secondary">
-                            Filter
-                        </Button>
-                        <Button type="button" variant="outline" onClick={clearFilters}>
-                            Bersihkan
-                        </Button>
+                        <FilterField label="Dari Tanggal">
+                            <TextInput
+                                type="date"
+                                value={filterData.date_from}
+                                onChange={(event) =>
+                                    setFilterData({
+                                        ...filterData,
+                                        date_from: event.target.value,
+                                    })
+                                }
+                            />
+                        </FilterField>
+                        <FilterField label="Sampai Tanggal">
+                            <TextInput
+                                type="date"
+                                value={filterData.date_to}
+                                onChange={(event) =>
+                                    setFilterData({
+                                        ...filterData,
+                                        date_to: event.target.value,
+                                    })
+                                }
+                            />
+                        </FilterField>
+                        <FilterField label="Pencarian">
+                            <TextInput
+                                type="search"
+                                placeholder="Kendaraan, polisi, pembeli"
+                                value={filterData.search}
+                                onChange={(event) =>
+                                    setFilterData({
+                                        ...filterData,
+                                        search: event.target.value,
+                                    })
+                                }
+                            />
+                        </FilterField>
+                        <FilterField label="Area">
+                            <Select
+                                value={filterData.area_id}
+                                onChange={(value) =>
+                                    setFilterData({
+                                        ...filterData,
+                                        area_id: value,
+                                    })
+                                }
+                            >
+                                <option value="">Semua Area</option>
+                                {options.areas.map((area) => (
+                                    <option key={area.id} value={area.id}>
+                                        {area.name}
+                                    </option>
+                                ))}
+                            </Select>
+                        </FilterField>
+                        <FilterField label="PIC">
+                            <Select
+                                value={filterData.employee_id}
+                                onChange={(value) =>
+                                    setFilterData({
+                                        ...filterData,
+                                        employee_id: value,
+                                    })
+                                }
+                            >
+                                <option value="">Semua PIC</option>
+                                {options.employees.map((employee) => (
+                                    <option key={employee.id} value={employee.id}>
+                                        {employee.name}
+                                    </option>
+                                ))}
+                            </Select>
+                        </FilterField>
+                        <FilterField label="Pembayaran">
+                            <Select
+                                value={filterData.payment_type}
+                                onChange={(value) =>
+                                    setFilterData({
+                                        ...filterData,
+                                        payment_type: value,
+                                    })
+                                }
+                            >
+                                <option value="">Semua Bayar</option>
+                                {options.paymentTypes.map((type) => (
+                                    <option key={type.value} value={type.value}>
+                                        {type.label}
+                                    </option>
+                                ))}
+                            </Select>
+                        </FilterField>
+                        <FilterField label="Tipe Modal">
+                            <Select
+                                value={filterData.capital_type}
+                                onChange={(value) =>
+                                    setFilterData({
+                                        ...filterData,
+                                        capital_type: value,
+                                    })
+                                }
+                            >
+                                <option value="">UMUM/KHUSUS</option>
+                                {options.capitalTypes.map((type) => (
+                                    <option key={type.value} value={type.value}>
+                                        {type.label}
+                                    </option>
+                                ))}
+                            </Select>
+                        </FilterField>
+                        <div className="flex items-end">
+                            <Button type="submit" variant="secondary" className="w-full">
+                                Filter
+                            </Button>
+                        </div>
+                        <div className="flex items-end">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full"
+                                onClick={clearFilters}
+                            >
+                                Bersihkan
+                            </Button>
+                        </div>
                     </form>
                 </Card>
 
@@ -283,7 +311,7 @@ export default function ReportsIndex({
                                         Preview laporan berdasarkan filter aktif.
                                     </p>
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-2 sm:justify-end">
                                     <PdfExportButton
                                         payload={pdfPayload}
                                         isLoading={pdfLoading}
@@ -291,10 +319,11 @@ export default function ReportsIndex({
                                         onPrepare={loadPdfData}
                                         disabled={summary.sales_count === 0}
                                     />
-                                    <a href={route('reports.export.excel', filterData)}>
-                                        <Button type="button" variant="outline" size="sm">
-                                            Excel
-                                        </Button>
+                                    <a
+                                        className={exportLinkClasses()}
+                                        href={route('reports.export.excel', filterData)}
+                                    >
+                                        Excel
                                     </a>
                                 </div>
                             </div>
@@ -455,21 +484,18 @@ function PdfExportButton({
 }) {
     if (payload) {
         return (
-            <PDFDownloadLink
-                document={<ReportPdfDocument payload={payload} />}
-                fileName={`laporan-penjualan-${payload.filters.date_from}-${payload.filters.date_to}.pdf`}
+            <Suspense
+                fallback={
+                    <span className={exportLinkClasses('pointer-events-none opacity-70')}>
+                        Menyiapkan PDF
+                    </span>
+                }
             >
-                {({ loading }) => (
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={loading}
-                    >
-                        {loading ? 'Membuat PDF' : 'Unduh PDF'}
-                    </Button>
-                )}
-            </PDFDownloadLink>
+                <PdfDownloadAction
+                    payload={payload}
+                    className={exportLinkClasses()}
+                />
+            </Suspense>
         );
     }
 
@@ -490,6 +516,31 @@ function PdfExportButton({
     );
 }
 
+function exportLinkClasses(className?: string) {
+    return cn(
+        'inline-flex h-8 items-center justify-center rounded-md border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-900 transition duration-150 ease-out',
+        'hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2',
+        className,
+    );
+}
+
+function FilterField({
+    label,
+    children,
+}: {
+    label: string;
+    children: ReactNode;
+}) {
+    return (
+        <label className="block min-w-0">
+            <span className="mb-1 block text-xs font-semibold text-neutral-600">
+                {label}
+            </span>
+            {children}
+        </label>
+    );
+}
+
 function Select({
     value,
     onChange,
@@ -501,7 +552,7 @@ function Select({
 }) {
     return (
         <select
-            className="h-10 rounded-md border-neutral-300 text-sm shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+            className="block h-10 w-full rounded-md border-neutral-300 text-sm shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
             value={value}
             onChange={(event) => onChange(event.target.value)}
         >
