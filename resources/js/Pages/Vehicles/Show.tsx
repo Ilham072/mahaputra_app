@@ -10,13 +10,19 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler, ReactNode } from 'react';
+import axios from 'axios';
+import { FormEventHandler, lazy, ReactNode, Suspense, useState } from 'react';
 import {
     VehicleCostCategoryOption,
     VehicleDetail,
     VehicleDocument,
     VehiclePhoto,
 } from './types';
+import { VehiclePdfPayload } from './VehiclePdfDocument';
+
+const VehiclePdfDownloadAction = lazy(
+    () => import('./VehiclePdfDownloadAction'),
+);
 
 type VehicleShowProps = {
     vehicle: VehicleDetail;
@@ -29,6 +35,11 @@ export default function VehicleShow({
 }: VehicleShowProps) {
     const { auth, flash } = usePage<PageProps>().props;
     const isAdmin = auth.user.role === 'admin';
+    const [pdfPayload, setPdfPayload] = useState<VehiclePdfPayload | null>(
+        null,
+    );
+    const [pdfLoading, setPdfLoading] = useState(false);
+    const [pdfError, setPdfError] = useState<string | null>(null);
     const costForm = useForm({
         cost_date: new Date().toISOString().slice(0, 10),
         category: costCategoryOptions[0]?.value ?? 'DICO',
@@ -46,6 +57,22 @@ export default function VehicleShow({
         });
     };
 
+    const loadPdfData = async () => {
+        setPdfLoading(true);
+        setPdfError(null);
+
+        try {
+            const response = await axios.get<VehiclePdfPayload>(
+                route('vehicles.pdf-data', vehicle.id),
+            );
+            setPdfPayload(response.data);
+        } catch {
+            setPdfError('Data PDF gagal disiapkan.');
+        } finally {
+            setPdfLoading(false);
+        }
+    };
+
     return (
         <AuthenticatedLayout
             header={
@@ -59,6 +86,12 @@ export default function VehicleShow({
                                     Kembali
                                 </Button>
                             </Link>
+                            <VehiclePdfExportButton
+                                payload={pdfPayload}
+                                isLoading={pdfLoading}
+                                error={pdfError}
+                                onPrepare={loadPdfData}
+                            />
                             {isAdmin && (
                                 <>
                                     <Link href={route('vehicles.edit', vehicle.id)}>
@@ -457,6 +490,59 @@ export default function VehicleShow({
             </div>
         </AuthenticatedLayout>
     );
+}
+
+function VehiclePdfExportButton({
+    payload,
+    isLoading,
+    error,
+    onPrepare,
+}: {
+    payload: VehiclePdfPayload | null;
+    isLoading: boolean;
+    error: string | null;
+    onPrepare: () => void;
+}) {
+    if (payload) {
+        return (
+            <Suspense
+                fallback={
+                    <span className={pdfLinkClasses('pointer-events-none opacity-70')}>
+                        Menyiapkan PDF
+                    </span>
+                }
+            >
+                <VehiclePdfDownloadAction
+                    payload={payload}
+                    className={pdfLinkClasses()}
+                />
+            </Suspense>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            <Button
+                type="button"
+                variant="outline"
+                onClick={onPrepare}
+                disabled={isLoading}
+                isLoading={isLoading}
+            >
+                PDF Internal
+            </Button>
+            {error && <span className="text-xs text-red-600">{error}</span>}
+        </div>
+    );
+}
+
+function pdfLinkClasses(extra = '') {
+    return [
+        'inline-flex h-10 items-center justify-center rounded-md border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-900 transition duration-150 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2',
+        extra,
+    ]
+        .filter(Boolean)
+        .join(' ');
 }
 
 function PhotoGallery({

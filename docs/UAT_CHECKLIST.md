@@ -39,6 +39,7 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 - Buka Kendaraan dan pastikan `DD 1801 UAT` tampil sebagai READY.
 - Pastikan cover foto tampil di card kendaraan dan detail kendaraan.
 - Tambahkan foto kendaraan dari detail kendaraan jika perlu.
+- Klik PDF Internal dari detail kendaraan dan pastikan file PDF terunduh.
 - Tambahkan atau cek biaya kendaraan.
 - Buat penjualan CASH untuk kendaraan tersebut.
 - Pastikan field kredit tidak wajib dan tidak tersimpan pada pembayaran CASH.
@@ -51,6 +52,7 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 - Login sebagai Admin.
 - Buka Kendaraan dan pastikan `DD 1802 UAT` tampil sebagai READY dan bertipe UMUM.
 - Pastikan galeri foto kendaraan dapat menampilkan foto cover.
+- Klik PDF Internal dari detail kendaraan dan pastikan modal UMUM/kolaborator muncul.
 - Pastikan kolaborator serta modal showroom/kolaborator terlihat.
 - Buat penjualan CREDIT dengan provider pembiayaan.
 - Isi DP, DP Terutang, Cair Pembiayaan, dan Refund.
@@ -63,6 +65,7 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 - Login sebagai Owner.
 - Pastikan Owner dapat membuka Dashboard dan Laporan.
 - Pastikan Owner dapat melihat foto kendaraan tetapi tidak dapat menambah, menghapus, atau mengubah cover foto.
+- Pastikan Owner dapat mengunduh PDF Internal kendaraan.
 - Pastikan Owner tidak dapat membuat, mengubah, atau menghapus data transaksi.
 - Filter laporan periode Agustus 2026.
 - Export Excel dan PDF dari laporan.
@@ -72,6 +75,7 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 
 - Excel terbuka dan memuat baris penjualan CASH dan CREDIT.
 - PDF terunduh dari browser dan memuat ringkasan laporan.
+- PDF Internal kendaraan memuat modal, biaya, dokumen, dan status kendaraan.
 - Export tetap mengikuti filter periode, payment type, area, dan PIC.
 - Tidak ada KTP/STNK/BPKB asli yang terekspos di hasil export.
 

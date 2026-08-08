@@ -13,6 +13,7 @@ use App\Http\Requests\VehicleRequest;
 use App\Models\Vehicle;
 use App\Models\VehicleBrand;
 use App\Services\VehicleCapitalCalculator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -88,6 +89,94 @@ class VehicleController extends Controller
                     'label' => $type->label(),
                 ])
                 ->values(),
+        ]);
+    }
+
+    public function pdfData(Vehicle $vehicle): JsonResponse
+    {
+        $vehicle->load([
+            'brand',
+            'collaborator',
+            'costs',
+            'documents',
+            'photos',
+            'sale.customer',
+            'sale.employee',
+            'sale.area',
+        ]);
+
+        $additionalCostsTotal = $vehicle->costs->sum('amount');
+        $initialCapital = $this->capitalCalculator->initialCapital(
+            $vehicle->capital_type,
+            $vehicle->showroom_capital,
+            $vehicle->collaborator_capital,
+        );
+        $totalVehicleCost = $this->capitalCalculator->totalVehicleCost(
+            $vehicle->tax_amount,
+            $additionalCostsTotal,
+        );
+        $finalCapital = $this->capitalCalculator->finalCapital($initialCapital, $totalVehicleCost);
+
+        return response()->json([
+            'generated_at' => now()->toDateTimeString(),
+            'vehicle' => [
+                'id' => $vehicle->id,
+                'purchase_date' => $vehicle->purchase_date->toDateString(),
+                'brand' => $vehicle->brand?->name,
+                'type' => $vehicle->type,
+                'plate_number' => $vehicle->plate_number,
+                'year' => $vehicle->year,
+                'color' => $vehicle->color,
+                'capital_type' => $vehicle->capital_type->value,
+                'tax_status' => $vehicle->tax_status->value,
+                'status' => $vehicle->status->value,
+                'asking_price' => $vehicle->asking_price,
+                'showroom_capital' => $vehicle->showroom_capital,
+                'collaborator_name' => $vehicle->collaborator?->name,
+                'collaborator_capital' => $vehicle->collaborator_capital,
+                'tax_amount' => $vehicle->tax_amount,
+                'additional_costs_total' => $additionalCostsTotal,
+                'total_vehicle_cost' => $totalVehicleCost,
+                'initial_capital' => $initialCapital,
+                'final_capital' => $finalCapital,
+                'photos_count' => $vehicle->photos->count(),
+                'has_cover_photo' => $vehicle->photos->contains(fn ($photo): bool => $photo->is_cover),
+            ],
+            'costs' => $vehicle->costs
+                ->sortByDesc('cost_date')
+                ->values()
+                ->map(fn ($cost): array => [
+                    'id' => $cost->id,
+                    'cost_date' => $cost->cost_date->toDateString(),
+                    'category_label' => $cost->category->label(),
+                    'amount' => $cost->amount,
+                    'description' => $cost->description,
+                ]),
+            'documents' => collect(VehicleDocumentType::cases())
+                ->map(function (VehicleDocumentType $type) use ($vehicle): array {
+                    $document = $vehicle->documents->first(
+                        fn ($document): bool => $document->document_type === $type,
+                    );
+
+                    return [
+                        'document_type' => $type->value,
+                        'document_label' => $type->label(),
+                        'is_available' => $document?->is_available ?? false,
+                        'original_name' => $document?->original_name,
+                        'note' => $document?->note,
+                    ];
+                })
+                ->values(),
+            'sale' => $vehicle->sale ? [
+                'sale_date' => $vehicle->sale->sale_date->toDateString(),
+                'payment_type' => $vehicle->sale->payment_type->value,
+                'customer_name' => $vehicle->sale->customer?->name,
+                'employee' => $vehicle->sale->employee?->name,
+                'area' => $vehicle->sale->area?->name,
+                'selling_price' => $vehicle->sale->selling_price,
+                'credit_total' => $vehicle->sale->credit_total,
+                'profit_snapshot' => $vehicle->sale->profit_snapshot,
+            ] : null,
         ]);
     }
 

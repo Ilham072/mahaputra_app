@@ -54,6 +54,7 @@ Route::middleware(['auth', 'role:admin,owner'])->group(function (): void {
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
     Route::get('/sales/{sale}/ktp', [SaleController::class, 'downloadKtp'])->name('sales.ktp.download');
     Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
+    Route::get('/vehicles/{vehicle}/pdf-data', [VehicleController::class, 'pdfData'])->name('vehicles.pdf-data');
     Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
     Route::get('/vehicles/{vehicle}/photos/{photo}', [VehiclePhotoController::class, 'show'])->name('vehicles.photos.show');
     Route::get('/vehicles/{vehicle}/documents/{document}/download', [VehicleDocumentController::class, 'download'])
