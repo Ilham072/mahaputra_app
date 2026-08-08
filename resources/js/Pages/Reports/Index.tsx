@@ -7,7 +7,15 @@ import StatusBadge from '@/Components/StatusBadge';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import axios from 'axios';
 import { FormEventHandler, ReactNode, useState } from 'react';
+import ReportPdfDocument, {
+    ReportFilters,
+    ReportPdfPayload,
+    ReportSummary,
+    SaleReportRow,
+} from './ReportPdfDocument';
 
 type Option = {
     id: number;
@@ -19,27 +27,6 @@ type ValueOption<T extends string = string> = {
     label: string;
 };
 
-type SaleReportRow = {
-    id: number;
-    sale_date: string;
-    area: string;
-    employee: string;
-    vehicle: string;
-    plate_number: string;
-    year: number;
-    capital_type: 'UMUM' | 'KHUSUS';
-    purchase_date: string;
-    payment_type: 'CASH' | 'CREDIT';
-    selling_price: number;
-    credit_total: number;
-    dp: number;
-    outstanding_dp: number;
-    initial_capital_snapshot: number;
-    vehicle_cost_snapshot: number;
-    final_capital_snapshot: number;
-    profit_snapshot: number;
-};
-
 type OperationPreview = {
     id: number;
     transaction_date: string;
@@ -49,23 +36,8 @@ type OperationPreview = {
 };
 
 type ReportProps = {
-    filters: {
-        date_from: string;
-        date_to: string;
-        search: string;
-        area_id: string;
-        employee_id: string;
-        payment_type: string;
-        capital_type: string;
-    };
-    summary: {
-        sales_count: number;
-        sales_value: number;
-        profit_total: number;
-        final_capital_total: number;
-        operational_total: number;
-        profit_minus_operational: number;
-    };
+    filters: ReportFilters;
+    summary: ReportSummary;
     sales: {
         data: SaleReportRow[];
     };
@@ -89,6 +61,9 @@ export default function ReportsIndex({
     options,
 }: ReportProps) {
     const [filterData, setFilterData] = useState(filters);
+    const [pdfPayload, setPdfPayload] = useState<ReportPdfPayload | null>(null);
+    const [pdfLoading, setPdfLoading] = useState(false);
+    const [pdfError, setPdfError] = useState<string | null>(null);
     const summaryCards: Array<{
         label: string;
         value: ReactNode;
@@ -124,6 +99,8 @@ export default function ReportsIndex({
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
 
+        setPdfPayload(null);
+        setPdfError(null);
         router.get(route('reports.index'), filterData, {
             preserveState: true,
             replace: true,
@@ -141,7 +118,25 @@ export default function ReportsIndex({
         };
 
         setFilterData(cleared);
+        setPdfPayload(null);
+        setPdfError(null);
         router.get(route('reports.index'), cleared, { replace: true });
+    };
+
+    const loadPdfData = async () => {
+        setPdfLoading(true);
+        setPdfError(null);
+
+        try {
+            const response = await axios.get<ReportPdfPayload>(
+                route('reports.export.pdf-data', filterData),
+            );
+            setPdfPayload(response.data);
+        } catch {
+            setPdfError('Data PDF gagal disiapkan.');
+        } finally {
+            setPdfLoading(false);
+        }
     };
 
     return (
@@ -288,10 +283,14 @@ export default function ReportsIndex({
                                         Preview laporan berdasarkan filter aktif.
                                     </p>
                                 </div>
-                                <div className="flex gap-2">
-                                    <Button type="button" variant="outline" size="sm" disabled>
-                                        PDF
-                                    </Button>
+                                <div className="flex flex-wrap gap-2">
+                                    <PdfExportButton
+                                        payload={pdfPayload}
+                                        isLoading={pdfLoading}
+                                        error={pdfError}
+                                        onPrepare={loadPdfData}
+                                        disabled={summary.sales_count === 0}
+                                    />
                                     <a href={route('reports.export.excel', filterData)}>
                                         <Button type="button" variant="outline" size="sm">
                                             Excel
@@ -438,6 +437,56 @@ export default function ReportsIndex({
                 </div>
             </div>
         </AuthenticatedLayout>
+    );
+}
+
+function PdfExportButton({
+    payload,
+    isLoading,
+    error,
+    onPrepare,
+    disabled,
+}: {
+    payload: ReportPdfPayload | null;
+    isLoading: boolean;
+    error: string | null;
+    onPrepare: () => void;
+    disabled: boolean;
+}) {
+    if (payload) {
+        return (
+            <PDFDownloadLink
+                document={<ReportPdfDocument payload={payload} />}
+                fileName={`laporan-penjualan-${payload.filters.date_from}-${payload.filters.date_to}.pdf`}
+            >
+                {({ loading }) => (
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={loading}
+                    >
+                        {loading ? 'Membuat PDF' : 'Unduh PDF'}
+                    </Button>
+                )}
+            </PDFDownloadLink>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onPrepare}
+                disabled={disabled || isLoading}
+                isLoading={isLoading}
+            >
+                PDF
+            </Button>
+            {error && <span className="text-xs text-red-600">{error}</span>}
+        </div>
     );
 }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\ExportSalesReportAction;
 use App\Models\Sale;
 use App\Services\SalesReportService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -71,5 +72,29 @@ class ReportController extends Controller
         return response()
             ->download($path, 'laporan-penjualan-'.$filters['date_from'].'-'.$filters['date_to'].'.xlsx')
             ->deleteFileAfterSend();
+    }
+
+    public function exportPdfData(Request $request, SalesReportService $reports): JsonResponse
+    {
+        $filters = $reports->filters($request);
+        $salesQuery = $reports->query($filters);
+        $summary = $reports->summary(clone $salesQuery);
+        $operationalTotal = $reports->operationalTotal($filters);
+
+        return response()->json([
+            'filters' => $filters,
+            'summary' => [
+                ...$summary,
+                'operational_total' => $operationalTotal,
+                'profit_minus_operational' => $summary['profit_total'] - $operationalTotal,
+            ],
+            'rows' => $salesQuery
+                ->oldest('sale_date')
+                ->oldest('id')
+                ->get()
+                ->map(fn (Sale $sale): array => $reports->saleRow($sale))
+                ->values(),
+            'generated_at' => now()->toDateTimeString(),
+        ]);
     }
 }

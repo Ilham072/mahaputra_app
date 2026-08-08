@@ -215,6 +215,47 @@ class ReportTest extends TestCase
         $this->assertStringNotContainsString('DD 5002 MP', $worksheet);
     }
 
+    public function test_reports_pdf_data_uses_active_filters(): void
+    {
+        $owner = User::factory()->create(['role' => UserRole::Owner->value]);
+        $bone = Area::query()->create(['name' => 'Bone']);
+        $wajo = Area::query()->create(['name' => 'Wajo']);
+        $andi = Employee::query()->create(['name' => 'Andi PIC']);
+
+        $this->createSale(
+            vehicle: $this->createVehicle('DD 6001 MP', VehicleCapitalType::Khusus),
+            area: $bone,
+            employee: $andi,
+            saleDate: '2026-08-08',
+            paymentType: PaymentType::Cash,
+            creditTotal: 0,
+            profit: 10000000,
+            customerName: 'Sari',
+        );
+        $this->createSale(
+            vehicle: $this->createVehicle('DD 6002 MP', VehicleCapitalType::Umum),
+            area: $wajo,
+            employee: $andi,
+            saleDate: '2026-08-09',
+            paymentType: PaymentType::Credit,
+            creditTotal: 138000000,
+            profit: 15000000,
+            customerName: 'Baso',
+        );
+
+        $this->actingAs($owner)
+            ->getJson(route('reports.export.pdf-data', [
+                'date_from' => '2026-08-01',
+                'date_to' => '2026-08-31',
+                'area_id' => $bone->id,
+            ]))
+            ->assertOk()
+            ->assertJsonPath('summary.sales_count', 1)
+            ->assertJsonPath('summary.profit_total', 10000000)
+            ->assertJsonPath('rows.0.plate_number', 'DD 6001 MP')
+            ->assertJsonMissing(['plate_number' => 'DD 6002 MP']);
+    }
+
     private function createVehicle(string $plateNumber, VehicleCapitalType $capitalType): Vehicle
     {
         $brand = VehicleBrand::query()->firstOrCreate(['name' => 'Toyota']);
