@@ -52,3 +52,22 @@ export type SaleDetail = SaleSummary & {
         refund: number;
     };
 };
+
+export type SaleFormModel = {
+    id: number;
+    sale_date: string;
+    employee_id: number;
+    area_id: number;
+    customer_name: string;
+    customer_whatsapp: string;
+    customer_alternative_whatsapp: string | null;
+    customer_address: string;
+    customer_ktp_original_name: string | null;
+    payment_type: PaymentType;
+    selling_price: number;
+    financing_provider_id: number | null;
+    dp: number;
+    outstanding_dp: number;
+    financing_disbursement: number;
+    refund: number;
+};

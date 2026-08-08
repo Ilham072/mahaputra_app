@@ -46,6 +46,8 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 - Pastikan kendaraan berubah menjadi SOLD.
 - Buka detail penjualan dan klik Invoice PDF.
 - Pastikan invoice tidak memuat modal, biaya internal, laba, atau file KTP.
+- Login Admin, buka detail penjualan, klik Edit, ubah data pembeli/PIC/area lalu simpan.
+- Pastikan perubahan transaksi tampil di detail dan laporan.
 - Buka Laporan, filter periode Agustus 2026.
 - Pastikan transaksi CASH tampil dan bisa diexport Excel/PDF.
 
@@ -61,6 +63,7 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 - Pastikan laba dihitung dari total nilai penjualan kredit dikurangi modal akhir.
 - Buka detail penjualan dan klik Invoice PDF.
 - Pastikan rincian kredit customer-facing tampil tanpa modal/laba internal.
+- Login Admin, edit transaksi CREDIT menjadi CASH atau sebaliknya untuk memastikan field pembayaran yang tidak relevan dibersihkan.
 - Buka Laporan, filter periode Agustus 2026.
 - Pastikan transaksi CREDIT tampil dan bisa diexport Excel/PDF.
 
@@ -71,7 +74,7 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 - Pastikan Owner dapat melihat foto kendaraan tetapi tidak dapat menambah, menghapus, atau mengubah cover foto.
 - Pastikan Owner dapat mengunduh PDF Internal kendaraan.
 - Pastikan Owner dapat mengunduh Invoice PDF dari detail penjualan.
-- Pastikan Owner tidak dapat membuat, mengubah, atau menghapus data transaksi.
+- Pastikan Owner tidak dapat membuat, mengedit, atau menghapus data transaksi.
 - Filter laporan periode Agustus 2026.
 - Export Excel dan PDF dari laporan.
 - Cek ringkasan penjualan, modal akhir, laba kendaraan, dan operasional.

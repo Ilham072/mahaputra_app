@@ -8,10 +8,17 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, ReactNode } from 'react';
-import { PaymentType, SaleOption, SaleVehicleContext } from './types';
+import {
+    PaymentType,
+    SaleFormModel,
+    SaleOption,
+    SaleVehicleContext,
+} from './types';
 
 type SaleFormProps = {
+    mode: 'create' | 'edit';
     vehicle: SaleVehicleContext;
+    sale: SaleFormModel | null;
     options: {
         areas: SaleOption[];
         employees: SaleOption[];
@@ -20,7 +27,7 @@ type SaleFormProps = {
     };
 };
 
-export default function SaleForm({ vehicle, options }: SaleFormProps) {
+export default function SaleForm({ mode, vehicle, sale, options }: SaleFormProps) {
     const form = useForm<{
         sale_date: string;
         employee_id: string;
@@ -38,21 +45,25 @@ export default function SaleForm({ vehicle, options }: SaleFormProps) {
         financing_disbursement: string;
         refund: string;
     }>({
-        sale_date: new Date().toISOString().slice(0, 10),
-        employee_id: '',
-        area_id: '',
-        customer_name: '',
-        customer_whatsapp: '',
-        customer_alternative_whatsapp: '',
-        customer_address: '',
+        sale_date: sale?.sale_date ?? new Date().toISOString().slice(0, 10),
+        employee_id: sale?.employee_id ? String(sale.employee_id) : '',
+        area_id: sale?.area_id ? String(sale.area_id) : '',
+        customer_name: sale?.customer_name ?? '',
+        customer_whatsapp: sale?.customer_whatsapp ?? '',
+        customer_alternative_whatsapp: sale?.customer_alternative_whatsapp ?? '',
+        customer_address: sale?.customer_address ?? '',
         customer_ktp: null,
-        payment_type: 'CASH',
-        selling_price: String(vehicle.asking_price),
-        financing_provider_id: '',
-        dp: '0',
-        outstanding_dp: '0',
-        financing_disbursement: '0',
-        refund: '0',
+        payment_type: sale?.payment_type ?? 'CASH',
+        selling_price: sale?.selling_price
+            ? String(sale.selling_price)
+            : String(vehicle.asking_price),
+        financing_provider_id: sale?.financing_provider_id
+            ? String(sale.financing_provider_id)
+            : '',
+        dp: sale ? String(sale.dp) : '0',
+        outstanding_dp: sale ? String(sale.outstanding_dp) : '0',
+        financing_disbursement: sale ? String(sale.financing_disbursement) : '0',
+        refund: sale ? String(sale.refund) : '0',
     });
 
     const creditTotal =
@@ -87,6 +98,18 @@ export default function SaleForm({ vehicle, options }: SaleFormProps) {
                 form.data.payment_type === 'CREDIT' ? form.data.refund : '',
         };
 
+        if (mode === 'edit' && sale) {
+            form.transform(() => ({
+                ...data,
+                _method: 'patch',
+            }));
+            form.post(route('sales.update', sale.id), {
+                forceFormData: true,
+            });
+
+            return;
+        }
+
         form.transform(() => data);
         form.post(route('vehicles.sales.store', vehicle.id), {
             forceFormData: true,
@@ -97,12 +120,20 @@ export default function SaleForm({ vehicle, options }: SaleFormProps) {
         <AuthenticatedLayout
             header={
                 <PageHeader
-                    title="Form Penjualan"
+                    title={
+                        mode === 'edit'
+                            ? 'Edit Penjualan'
+                            : 'Form Penjualan'
+                    }
                     description={`${vehicle.brand} ${vehicle.type} / ${vehicle.plate_number}`}
                 />
             }
         >
-            <Head title="Form Penjualan" />
+            <Head
+                title={
+                    mode === 'edit' ? 'Edit Penjualan' : 'Form Penjualan'
+                }
+            />
 
             <form onSubmit={submit} className="space-y-6">
                 <Card>
@@ -129,8 +160,20 @@ export default function SaleForm({ vehicle, options }: SaleFormProps) {
                             <Field label="WhatsApp Alternatif" error={form.errors.customer_alternative_whatsapp}>
                                 <TextInput className="block w-full" value={form.data.customer_alternative_whatsapp} onChange={(e) => form.setData('customer_alternative_whatsapp', e.target.value)} />
                             </Field>
-                            <Field label="KTP *" error={form.errors.customer_ktp}>
-                                <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" className="block w-full rounded-md border border-neutral-300 bg-white text-sm file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white" onChange={(e) => form.setData('customer_ktp', e.target.files?.[0] ?? null)} required />
+                            <Field
+                                label={
+                                    mode === 'edit'
+                                        ? 'Ganti KTP'
+                                        : 'KTP *'
+                                }
+                                error={form.errors.customer_ktp}
+                            >
+                                <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" className="block w-full rounded-md border border-neutral-300 bg-white text-sm file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white" onChange={(e) => form.setData('customer_ktp', e.target.files?.[0] ?? null)} required={mode === 'create'} />
+                                {mode === 'edit' && sale?.customer_ktp_original_name && (
+                                    <p className="mt-2 text-xs text-neutral-500">
+                                        File saat ini: {sale.customer_ktp_original_name}
+                                    </p>
+                                )}
                             </Field>
                             <div className="md:col-span-2">
                                 <Field label="Alamat *" error={form.errors.customer_address}>
@@ -217,11 +260,19 @@ export default function SaleForm({ vehicle, options }: SaleFormProps) {
                 </Card>
 
                 <div className="sticky bottom-0 flex justify-end gap-3 border-t border-neutral-200 bg-neutral-50 py-4">
-                    <Link href={route('vehicles.show', vehicle.id)}>
+                    <Link
+                        href={
+                            mode === 'edit' && sale
+                                ? route('sales.show', sale.id)
+                                : route('vehicles.show', vehicle.id)
+                        }
+                    >
                         <Button type="button" variant="outline">Batal</Button>
                     </Link>
                     <Button type="submit" disabled={form.processing} isLoading={form.processing}>
-                        Simpan & Tandai Terjual
+                        {mode === 'edit'
+                            ? 'Simpan Perubahan'
+                            : 'Simpan & Tandai Terjual'}
                     </Button>
                 </div>
             </form>

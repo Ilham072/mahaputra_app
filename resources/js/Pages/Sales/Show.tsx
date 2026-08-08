@@ -20,7 +20,8 @@ type SaleShowProps = {
 };
 
 export default function SaleShow({ sale }: SaleShowProps) {
-    const { flash } = usePage<PageProps>().props;
+    const { auth, flash } = usePage<PageProps>().props;
+    const isAdmin = auth.user.role === 'admin';
     const [invoicePayload, setInvoicePayload] =
         useState<InvoicePdfPayload | null>(null);
     const [invoiceLoading, setInvoiceLoading] = useState(false);
@@ -59,6 +60,13 @@ export default function SaleShow({ sale }: SaleShowProps) {
                                 error={invoiceError}
                                 onPrepare={loadInvoiceData}
                             />
+                            {isAdmin && (
+                                <Link href={route('sales.edit', sale.id)}>
+                                    <Button type="button">
+                                        Edit
+                                    </Button>
+                                </Link>
+                            )}
                         </div>
                     }
                 />

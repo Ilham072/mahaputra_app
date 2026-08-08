@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Actions\CreateSaleAction;
+use App\Actions\UpdateSaleAction;
 use App\Enums\PaymentType;
 use App\Http\Requests\SaleRequest;
+use App\Http\Requests\UpdateSaleRequest;
 use App\Models\Area;
 use App\Models\Employee;
 use App\Models\FinancingProvider;
@@ -45,18 +47,10 @@ class SaleController extends Controller
         $vehicle->load(['brand', 'collaborator', 'costs']);
 
         return Inertia::render('Sales/Form', [
+            'mode' => 'create',
             'vehicle' => $this->vehicleSaleContext($vehicle),
-            'options' => [
-                'areas' => Area::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
-                'employees' => Employee::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
-                'financingProviders' => FinancingProvider::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
-                'paymentTypes' => collect(PaymentType::cases())
-                    ->map(fn (PaymentType $type): array => [
-                        'value' => $type->value,
-                        'label' => $type->label(),
-                    ])
-                    ->values(),
-            ],
+            'sale' => null,
+            'options' => $this->options(),
         ]);
     }
 
@@ -75,6 +69,26 @@ class SaleController extends Controller
         return Inertia::render('Sales/Show', [
             'sale' => $this->detail($sale),
         ]);
+    }
+
+    public function edit(Sale $sale): Response
+    {
+        $sale->load(['vehicle.brand', 'vehicle.collaborator', 'vehicle.costs', 'customer', 'payment.financingProvider']);
+
+        return Inertia::render('Sales/Form', [
+            'mode' => 'edit',
+            'vehicle' => $this->vehicleSaleContext($sale->vehicle),
+            'sale' => $this->formData($sale),
+            'options' => $this->options(),
+        ]);
+    }
+
+    public function update(UpdateSaleRequest $request, Sale $sale, UpdateSaleAction $action): RedirectResponse
+    {
+        $action->execute($sale, $request->validated());
+
+        return Redirect::route('sales.show', $sale)
+            ->with('success', 'Penjualan berhasil diperbarui.');
     }
 
     public function invoiceData(Sale $sale): JsonResponse
@@ -164,6 +178,24 @@ class SaleController extends Controller
     /**
      * @return array<string, mixed>
      */
+    private function options(): array
+    {
+        return [
+            'areas' => Area::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'employees' => Employee::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'financingProviders' => FinancingProvider::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'paymentTypes' => collect(PaymentType::cases())
+                ->map(fn (PaymentType $type): array => [
+                    'value' => $type->value,
+                    'label' => $type->label(),
+                ])
+                ->values(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     private function summary(Sale $sale): array
     {
         return [
@@ -207,6 +239,31 @@ class SaleController extends Controller
                 'financing_disbursement' => $sale->payment?->financing_disbursement ?? 0,
                 'refund' => $sale->payment?->refund ?? 0,
             ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function formData(Sale $sale): array
+    {
+        return [
+            'id' => $sale->id,
+            'sale_date' => $sale->sale_date->toDateString(),
+            'employee_id' => $sale->employee_id,
+            'area_id' => $sale->area_id,
+            'customer_name' => $sale->customer->name,
+            'customer_whatsapp' => $sale->customer->whatsapp,
+            'customer_alternative_whatsapp' => $sale->customer->alternative_whatsapp,
+            'customer_address' => $sale->customer->address,
+            'customer_ktp_original_name' => $sale->customer->ktp_original_name,
+            'payment_type' => $sale->payment_type->value,
+            'selling_price' => $sale->selling_price,
+            'financing_provider_id' => $sale->payment?->financing_provider_id,
+            'dp' => $sale->payment?->dp ?? 0,
+            'outstanding_dp' => $sale->payment?->outstanding_dp ?? 0,
+            'financing_disbursement' => $sale->payment?->financing_disbursement ?? 0,
+            'refund' => $sale->payment?->refund ?? 0,
         ];
     }
 }

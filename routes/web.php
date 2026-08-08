@@ -42,6 +42,8 @@ Route::middleware(['auth', 'role:admin'])->group(function (): void {
     Route::post('/vehicles/{vehicle}/sell', [SaleController::class, 'store'])->name('vehicles.sales.store');
     Route::get('/vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
     Route::patch('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
+    Route::get('/sales/{sale}/edit', [SaleController::class, 'edit'])->name('sales.edit');
+    Route::patch('/sales/{sale}', [SaleController::class, 'update'])->name('sales.update');
 });
 
 Route::middleware(['auth', 'role:admin,owner'])->group(function (): void {
