@@ -292,9 +292,11 @@ export default function ReportsIndex({
                                     <Button type="button" variant="outline" size="sm" disabled>
                                         PDF
                                     </Button>
-                                    <Button type="button" variant="outline" size="sm" disabled>
-                                        Excel
-                                    </Button>
+                                    <a href={route('reports.export.excel', filterData)}>
+                                        <Button type="button" variant="outline" size="sm">
+                                            Excel
+                                        </Button>
+                                    </a>
                                 </div>
                             </div>
 

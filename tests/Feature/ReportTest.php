@@ -20,6 +20,7 @@ use App\Models\VehicleBrand;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
+use ZipArchive;
 
 class ReportTest extends TestCase
 {
@@ -162,6 +163,56 @@ class ReportTest extends TestCase
             ]))
             ->assertRedirect(route('reports.index'))
             ->assertSessionHasErrors(['date_from', 'payment_type']);
+    }
+
+    public function test_reports_can_export_filtered_sales_to_xlsx(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $bone = Area::query()->create(['name' => 'Bone']);
+        $wajo = Area::query()->create(['name' => 'Wajo']);
+        $andi = Employee::query()->create(['name' => 'Andi PIC']);
+
+        $this->createSale(
+            vehicle: $this->createVehicle('DD 5001 MP', VehicleCapitalType::Khusus),
+            area: $bone,
+            employee: $andi,
+            saleDate: '2026-08-08',
+            paymentType: PaymentType::Cash,
+            creditTotal: 0,
+            profit: 10000000,
+            customerName: 'Sari',
+        );
+        $this->createSale(
+            vehicle: $this->createVehicle('DD 5002 MP', VehicleCapitalType::Umum),
+            area: $wajo,
+            employee: $andi,
+            saleDate: '2026-08-09',
+            paymentType: PaymentType::Credit,
+            creditTotal: 138000000,
+            profit: 15000000,
+            customerName: 'Baso',
+        );
+
+        $response = $this->actingAs($admin)
+            ->get(route('reports.export.excel', [
+                'date_from' => '2026-08-01',
+                'date_to' => '2026-08-31',
+                'area_id' => $bone->id,
+            ]))
+            ->assertOk()
+            ->assertDownload('laporan-penjualan-2026-08-01-2026-08-31.xlsx');
+
+        $path = $response->baseResponse->getFile()->getPathname();
+        $zip = new ZipArchive;
+
+        $this->assertTrue($zip->open($path));
+        $worksheet = $zip->getFromName('xl/worksheets/sheet1.xml');
+        $zip->close();
+
+        $this->assertIsString($worksheet);
+        $this->assertStringContainsString('Laporan Penjualan Mahaputra Group', $worksheet);
+        $this->assertStringContainsString('DD 5001 MP', $worksheet);
+        $this->assertStringNotContainsString('DD 5002 MP', $worksheet);
     }
 
     private function createVehicle(string $plateNumber, VehicleCapitalType $capitalType): Vehicle
