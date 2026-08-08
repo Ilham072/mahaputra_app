@@ -23,6 +23,7 @@ use App\Models\Vehicle;
 use App\Models\VehicleBrand;
 use App\Models\VehicleCost;
 use App\Models\VehicleDocument;
+use App\Models\VehiclePhoto;
 use App\Services\SaleProfitCalculator;
 use App\Services\VehicleCapitalCalculator;
 use Illuminate\Database\Seeder;
@@ -131,6 +132,7 @@ class UatDemoSeeder extends Seeder
         $this->syncCost($vehicle, VehicleCostCategory::Dico, 1800000, 'UAT dico kendaraan siap cash', '2026-08-02');
         $this->syncDocument($vehicle, VehicleDocumentType::Stnk, 'uat/vehicles/DD-1801-UAT/stnk.txt');
         $this->syncDocument($vehicle, VehicleDocumentType::Bpkb, 'uat/vehicles/DD-1801-UAT/bpkb.txt');
+        $this->syncPhoto($vehicle, 'uat/vehicles/DD-1801-UAT/cover.png');
     }
 
     private function seedReadyCreditVehicle(VehicleBrand $brand, Collaborator $collaborator): void
@@ -156,6 +158,7 @@ class UatDemoSeeder extends Seeder
 
         $this->syncCost($vehicle, VehicleCostCategory::ElectricalUndercarriage, 2200000, 'UAT servis kaki-kaki siap kredit', '2026-08-03');
         $this->syncDocument($vehicle, VehicleDocumentType::Stnk, 'uat/vehicles/DD-1802-UAT/stnk.txt');
+        $this->syncPhoto($vehicle, 'uat/vehicles/DD-1802-UAT/cover.png');
     }
 
     private function seedPreparationVehicle(VehicleBrand $brand): void
@@ -202,6 +205,7 @@ class UatDemoSeeder extends Seeder
         );
 
         $this->syncCost($vehicle, VehicleCostCategory::Dico, 2000000, 'UAT dico kendaraan cash terjual', '2026-07-22');
+        $this->syncPhoto($vehicle, 'uat/vehicles/DD-1804-UAT/cover.png');
 
         $customer = $this->syncCustomer(
             'Customer Cash UAT',
@@ -267,6 +271,7 @@ class UatDemoSeeder extends Seeder
         );
 
         $this->syncCost($vehicle, VehicleCostCategory::Other, 3000000, 'UAT detailing kendaraan kredit terjual', '2026-07-27');
+        $this->syncPhoto($vehicle, 'uat/vehicles/DD-1805-UAT/cover.png');
 
         $customer = $this->syncCustomer(
             'Customer Kredit UAT',
@@ -365,6 +370,28 @@ class UatDemoSeeder extends Seeder
                 'original_name' => strtolower($type->value).'-uat.txt',
                 'mime_type' => 'text/plain',
                 'note' => 'Dokumen placeholder untuk UAT lokal.',
+            ],
+        );
+    }
+
+    private function syncPhoto(Vehicle $vehicle, string $path): void
+    {
+        Storage::disk('local')->put(
+            $path,
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=') ?: '',
+        );
+
+        VehiclePhoto::query()->updateOrCreate(
+            [
+                'vehicle_id' => $vehicle->id,
+                'file_path' => $path,
+            ],
+            [
+                'original_name' => 'cover-uat.png',
+                'mime_type' => 'image/png',
+                'size' => Storage::disk('local')->size($path),
+                'is_cover' => true,
+                'sort_order' => 1,
             ],
         );
     }

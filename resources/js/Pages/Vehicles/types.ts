@@ -26,6 +26,7 @@ export type VehicleSummary = {
     capital_type: 'UMUM' | 'KHUSUS';
     asking_price: number;
     status: 'PREPARATION' | 'READY' | 'BOOKING' | 'SOLD';
+    cover_photo_url: string | null;
 };
 
 export type VehicleDetail = VehicleSummary & {
@@ -41,6 +42,7 @@ export type VehicleDetail = VehicleSummary & {
     final_capital: number;
     costs: VehicleCost[];
     documents: VehicleDocument[];
+    photos: VehiclePhoto[];
 };
 
 export type VehicleCost = {
@@ -71,4 +73,13 @@ export type VehicleDocument = {
 export type VehicleDocumentTypeOption = {
     value: VehicleDocument['document_type'];
     label: string;
+};
+
+export type VehiclePhoto = {
+    id: number;
+    view_url: string;
+    original_name: string | null;
+    mime_type: string | null;
+    size: number;
+    is_cover: boolean;
 };

@@ -9,6 +9,7 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleCostController;
 use App\Http\Controllers\VehicleDocumentController;
+use App\Http\Controllers\VehiclePhotoController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,9 @@ Route::middleware(['auth', 'role:admin'])->group(function (): void {
     Route::post('/vehicles/{vehicle}/documents/{documentType}', [VehicleDocumentController::class, 'update'])
         ->whereIn('documentType', ['STNK', 'BPKB'])
         ->name('vehicles.documents.update');
+    Route::post('/vehicles/{vehicle}/photos', [VehiclePhotoController::class, 'store'])->name('vehicles.photos.store');
+    Route::patch('/vehicles/{vehicle}/photos/{photo}/cover', [VehiclePhotoController::class, 'cover'])->name('vehicles.photos.cover');
+    Route::delete('/vehicles/{vehicle}/photos/{photo}', [VehiclePhotoController::class, 'destroy'])->name('vehicles.photos.destroy');
     Route::get('/vehicles/{vehicle}/sell', [SaleController::class, 'create'])->name('vehicles.sales.create');
     Route::post('/vehicles/{vehicle}/sell', [SaleController::class, 'store'])->name('vehicles.sales.store');
     Route::get('/vehicles/{vehicle}/edit', [VehicleController::class, 'edit'])->name('vehicles.edit');
@@ -51,6 +55,7 @@ Route::middleware(['auth', 'role:admin,owner'])->group(function (): void {
     Route::get('/sales/{sale}/ktp', [SaleController::class, 'downloadKtp'])->name('sales.ktp.download');
     Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
     Route::get('/vehicles/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
+    Route::get('/vehicles/{vehicle}/photos/{photo}', [VehiclePhotoController::class, 'show'])->name('vehicles.photos.show');
     Route::get('/vehicles/{vehicle}/documents/{document}/download', [VehicleDocumentController::class, 'download'])
         ->name('vehicles.documents.download');
 });

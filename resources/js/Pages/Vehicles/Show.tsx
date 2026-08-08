@@ -15,6 +15,7 @@ import {
     VehicleCostCategoryOption,
     VehicleDetail,
     VehicleDocument,
+    VehiclePhoto,
 } from './types';
 
 type VehicleShowProps = {
@@ -95,9 +96,17 @@ export default function VehicleShow({
 
                 <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(360px,0.7fr)]">
                     <Card className="overflow-hidden">
-                        <div className="flex aspect-[4/3] items-center justify-center bg-neutral-100 text-sm font-medium text-neutral-500">
-                            Foto kendaraan belum tersedia
-                        </div>
+                        {vehicle.cover_photo_url ? (
+                            <img
+                                src={vehicle.cover_photo_url}
+                                alt={`${vehicle.brand} ${vehicle.type} ${vehicle.plate_number}`}
+                                className="aspect-[4/3] w-full object-cover"
+                            />
+                        ) : (
+                            <div className="flex aspect-[4/3] items-center justify-center bg-neutral-100 text-sm font-medium text-neutral-500">
+                                Foto kendaraan belum tersedia
+                            </div>
+                        )}
                     </Card>
 
                     <div className="space-y-6">
@@ -430,6 +439,12 @@ export default function VehicleShow({
                 </div>
 
                 <div className="grid gap-6 xl:grid-cols-2">
+                    <PhotoGallery
+                        vehicleId={vehicle.id}
+                        photos={vehicle.photos}
+                        canManage={isAdmin}
+                    />
+
                     {vehicle.documents.map((document) => (
                         <DocumentCard
                             key={document.document_type}
@@ -441,6 +456,188 @@ export default function VehicleShow({
                 </div>
             </div>
         </AuthenticatedLayout>
+    );
+}
+
+function PhotoGallery({
+    vehicleId,
+    photos,
+    canManage,
+}: {
+    vehicleId: number;
+    photos: VehiclePhoto[];
+    canManage: boolean;
+}) {
+    const form = useForm<{ photos: File[] }>({
+        photos: [],
+    });
+
+    const submit: FormEventHandler = (event) => {
+        event.preventDefault();
+
+        form.post(route('vehicles.photos.store', vehicleId), {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => form.reset('photos'),
+        });
+    };
+
+    return (
+        <Card>
+            <CardContent className="space-y-5">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <CardTitle>Foto Kendaraan</CardTitle>
+                        <p className="mt-1 text-sm text-neutral-500">
+                            Foto internal untuk inventory showroom.
+                        </p>
+                    </div>
+                    <span className="inline-flex rounded-md border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">
+                        {photos.length}/5 foto
+                    </span>
+                </div>
+
+                {photos.length === 0 ? (
+                    <EmptyState
+                        title="Belum ada foto kendaraan."
+                        description="Foto kendaraan akan tampil sebagai cover di daftar kendaraan."
+                    />
+                ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        {photos.map((photo) => (
+                            <PhotoCard
+                                key={photo.id}
+                                vehicleId={vehicleId}
+                                photo={photo}
+                                canManage={canManage}
+                            />
+                        ))}
+                    </div>
+                )}
+
+                {canManage && photos.length < 5 && (
+                    <form
+                        onSubmit={submit}
+                        className="space-y-4 border-t border-neutral-200 pt-5"
+                    >
+                        <div>
+                            <InputLabel
+                                htmlFor="vehicle-photos"
+                                value="Tambah Foto"
+                            />
+                            <input
+                                id="vehicle-photos"
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.webp"
+                                multiple
+                                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white text-sm text-neutral-700 file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                onChange={(event) =>
+                                    form.setData(
+                                        'photos',
+                                        Array.from(event.target.files ?? []),
+                                    )
+                                }
+                            />
+                            <InputError
+                                className="mt-2"
+                                message={form.errors.photos}
+                            />
+                            <p className="mt-2 text-xs text-neutral-500">
+                                Maksimal 5 foto, 5 MB per foto.
+                            </p>
+                        </div>
+
+                        <Button
+                            type="submit"
+                            disabled={
+                                form.processing || form.data.photos.length === 0
+                            }
+                            isLoading={form.processing}
+                        >
+                            Tambah Foto
+                        </Button>
+                    </form>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+function PhotoCard({
+    vehicleId,
+    photo,
+    canManage,
+}: {
+    vehicleId: number;
+    photo: VehiclePhoto;
+    canManage: boolean;
+}) {
+    const coverForm = useForm({});
+    const deleteForm = useForm({});
+
+    return (
+        <div className="overflow-hidden rounded-md border border-neutral-200 bg-white">
+            <img
+                src={photo.view_url}
+                alt={photo.original_name ?? 'Foto kendaraan'}
+                className="aspect-[4/3] w-full object-cover"
+            />
+            <div className="space-y-3 p-3">
+                <div className="flex items-center justify-between gap-3">
+                    <p className="truncate text-sm font-medium text-neutral-800">
+                        {photo.original_name ?? 'Foto kendaraan'}
+                    </p>
+                    {photo.is_cover && (
+                        <span className="shrink-0 rounded-md border border-yellow-200 bg-yellow-50 px-2 py-0.5 text-xs font-medium text-yellow-800">
+                            Cover
+                        </span>
+                    )}
+                </div>
+
+                {canManage && (
+                    <div className="flex flex-wrap gap-2">
+                        {!photo.is_cover && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={coverForm.processing}
+                                isLoading={coverForm.processing}
+                                onClick={() =>
+                                    coverForm.patch(
+                                        route('vehicles.photos.cover', [
+                                            vehicleId,
+                                            photo.id,
+                                        ]),
+                                        { preserveScroll: true },
+                                    )
+                                }
+                            >
+                                Jadikan Cover
+                            </Button>
+                        )}
+                        <Button
+                            type="button"
+                            variant="danger"
+                            size="sm"
+                            disabled={deleteForm.processing}
+                            isLoading={deleteForm.processing}
+                            onClick={() =>
+                                deleteForm.delete(
+                                    route('vehicles.photos.destroy', [
+                                        vehicleId,
+                                        photo.id,
+                                    ]),
+                                    { preserveScroll: true },
+                                )
+                            }
+                        >
+                            Hapus
+                        </Button>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }
 

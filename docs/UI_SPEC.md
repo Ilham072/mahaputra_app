@@ -2282,7 +2282,7 @@ VehicleCard
 | UIQ-002 | Apakah sidebar harus selalu expanded atau dapat collapsed?                            | Product/UI    | PROPOSED: Collapsible |
 | UIQ-003 | Apakah BOOKING benar-benar dibutuhkan sebagai status kendaraan?                       | Admin/Product | OPEN                  |
 | UIQ-004 | Apakah kendaraan PREPARATION ditampilkan bersama READY atau tab terpisah?             | Admin/Product | OPEN                  |
-| UIQ-005 | Berapa jumlah foto maksimal per kendaraan?                                            | Admin/Product | OPEN                  |
+| UIQ-005 | Berapa jumlah foto maksimal per kendaraan?                                            | Admin/Product | MVP: 5, final TBD     |
 | UIQ-006 | Apakah foto kendaraan memiliki satu cover image utama?                                | Admin/Product | PROPOSED: Yes         |
 | UIQ-007 | Data apa saja yang perlu terlihat langsung pada Vehicle Card?                         | Admin/Product | OPEN                  |
 | UIQ-008 | Apakah Owner boleh melihat detail customer atau hanya laporan finansial?              | Owner/Product | OPEN                  |

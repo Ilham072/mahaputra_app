@@ -25,18 +25,20 @@ Login demo:
 
 Data UAT yang tersedia:
 
-- `DD 1801 UAT`: kendaraan READY KHUSUS untuk uji penjualan CASH.
-- `DD 1802 UAT`: kendaraan READY UMUM dengan kolaborator untuk uji penjualan CREDIT.
+- `DD 1801 UAT`: kendaraan READY KHUSUS untuk uji penjualan CASH, termasuk cover foto.
+- `DD 1802 UAT`: kendaraan READY UMUM dengan kolaborator untuk uji penjualan CREDIT, termasuk cover foto.
 - `DD 1803 UAT`: kendaraan PREPARATION untuk cek status persiapan.
-- `DD 1804 UAT`: kendaraan SOLD CASH untuk laporan dan export.
-- `DD 1805 UAT`: kendaraan SOLD CREDIT untuk laporan dan export.
+- `DD 1804 UAT`: kendaraan SOLD CASH untuk laporan dan export, termasuk cover foto.
+- `DD 1805 UAT`: kendaraan SOLD CREDIT untuk laporan dan export, termasuk cover foto.
 
-Semua file KTP, STNK/BPKB, dan bukti operasional dari seeder adalah placeholder teks lokal, bukan dokumen asli.
+Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder adalah placeholder lokal, bukan dokumen asli.
 
 ## Flow Admin Cash
 
 - Login sebagai Admin.
 - Buka Kendaraan dan pastikan `DD 1801 UAT` tampil sebagai READY.
+- Pastikan cover foto tampil di card kendaraan dan detail kendaraan.
+- Tambahkan foto kendaraan dari detail kendaraan jika perlu.
 - Tambahkan atau cek biaya kendaraan.
 - Buat penjualan CASH untuk kendaraan tersebut.
 - Pastikan field kredit tidak wajib dan tidak tersimpan pada pembayaran CASH.
@@ -48,6 +50,7 @@ Semua file KTP, STNK/BPKB, dan bukti operasional dari seeder adalah placeholder 
 
 - Login sebagai Admin.
 - Buka Kendaraan dan pastikan `DD 1802 UAT` tampil sebagai READY dan bertipe UMUM.
+- Pastikan galeri foto kendaraan dapat menampilkan foto cover.
 - Pastikan kolaborator serta modal showroom/kolaborator terlihat.
 - Buat penjualan CREDIT dengan provider pembiayaan.
 - Isi DP, DP Terutang, Cair Pembiayaan, dan Refund.
@@ -59,6 +62,7 @@ Semua file KTP, STNK/BPKB, dan bukti operasional dari seeder adalah placeholder 
 
 - Login sebagai Owner.
 - Pastikan Owner dapat membuka Dashboard dan Laporan.
+- Pastikan Owner dapat melihat foto kendaraan tetapi tidak dapat menambah, menghapus, atau mengubah cover foto.
 - Pastikan Owner tidak dapat membuat, mengubah, atau menghapus data transaksi.
 - Filter laporan periode Agustus 2026.
 - Export Excel dan PDF dari laporan.
@@ -75,4 +79,5 @@ Semua file KTP, STNK/BPKB, dan bukti operasional dari seeder adalah placeholder 
 
 - Format akhir PDF internal/customer masih menunggu keputusan PRD `OQ-011`.
 - Formula final Keuntungan Perusahaan setelah pembagian laba UMUM masih menunggu keputusan PRD `OQ-014`.
+- Jumlah foto kendaraan final masih menunggu keputusan PRD/UI; MVP membatasi maksimal 5 foto per kendaraan.
 - Data UAT hanya untuk environment `local` dan `testing`; seeder tidak berjalan di environment lain.

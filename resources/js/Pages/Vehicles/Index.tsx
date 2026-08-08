@@ -185,9 +185,17 @@ export default function VehicleIndex({
                                 key={vehicle.id}
                                 className="overflow-hidden transition duration-150 hover:border-neutral-300"
                             >
-                                <div className="flex aspect-[4/3] items-center justify-center bg-neutral-100 text-sm font-medium text-neutral-500">
-                                    Foto kendaraan belum tersedia
-                                </div>
+                                {vehicle.cover_photo_url ? (
+                                    <img
+                                        src={vehicle.cover_photo_url}
+                                        alt={`${vehicle.brand} ${vehicle.type} ${vehicle.plate_number}`}
+                                        className="aspect-[4/3] w-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="flex aspect-[4/3] items-center justify-center bg-neutral-100 text-sm font-medium text-neutral-500">
+                                        Foto kendaraan belum tersedia
+                                    </div>
+                                )}
                                 <div className="space-y-4 p-5">
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="min-w-0">

@@ -79,6 +79,8 @@ class VehicleRequest extends FormRequest
             'tax_amount' => ['nullable', 'integer', 'min:0'],
             'asking_price' => ['required', 'integer', 'min:0'],
             'status' => $statusRules,
+            'photos' => ['nullable', 'array', 'max:5'],
+            'photos.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ];
     }
 }

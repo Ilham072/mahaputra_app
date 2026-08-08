@@ -26,7 +26,7 @@ class VehicleController extends Controller
     public function index(Request $request): Response
     {
         $vehicles = Vehicle::query()
-            ->with(['brand', 'collaborator'])
+            ->with(['brand', 'collaborator', 'photos'])
             ->when($request->string('search')->toString(), function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('plate_number', 'like', "%{$search}%")
@@ -72,7 +72,7 @@ class VehicleController extends Controller
 
     public function show(Vehicle $vehicle): Response
     {
-        $vehicle->load(['brand', 'collaborator', 'costs', 'documents']);
+        $vehicle->load(['brand', 'collaborator', 'costs', 'documents', 'photos']);
 
         return Inertia::render('Vehicles/Show', [
             'vehicle' => $this->detail($vehicle),
@@ -157,6 +157,7 @@ class VehicleController extends Controller
             'capital_type' => $vehicle->capital_type->value,
             'asking_price' => $vehicle->asking_price,
             'status' => $vehicle->status->value,
+            'cover_photo_url' => $this->coverPhotoUrl($vehicle),
         ];
     }
 
@@ -219,6 +220,21 @@ class VehicleController extends Controller
                     ];
                 })
                 ->values(),
+            'photos' => $vehicle->photos
+                ->sortBy([
+                    ['is_cover', 'desc'],
+                    ['sort_order', 'asc'],
+                    ['id', 'asc'],
+                ])
+                ->values()
+                ->map(fn ($photo): array => [
+                    'id' => $photo->id,
+                    'view_url' => route('vehicles.photos.show', [$vehicle, $photo]),
+                    'original_name' => $photo->original_name,
+                    'mime_type' => $photo->mime_type,
+                    'size' => $photo->size,
+                    'is_cover' => $photo->is_cover,
+                ]),
         ];
     }
 
@@ -231,5 +247,18 @@ class VehicleController extends Controller
             ...$this->detail($vehicle),
             'collaborator_name' => $vehicle->collaborator?->name ?? '',
         ];
+    }
+
+    private function coverPhotoUrl(Vehicle $vehicle): ?string
+    {
+        $photo = $vehicle->photos
+            ->sortBy([
+                ['is_cover', 'desc'],
+                ['sort_order', 'asc'],
+                ['id', 'asc'],
+            ])
+            ->first();
+
+        return $photo ? route('vehicles.photos.show', [$vehicle, $photo]) : null;
     }
 }

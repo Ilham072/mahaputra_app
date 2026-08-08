@@ -31,6 +31,7 @@ type VehicleFormData = {
     tax_amount: string;
     asking_price: string;
     status: 'PREPARATION' | 'READY' | 'BOOKING' | 'SOLD';
+    photos: File[];
 };
 
 export default function VehicleForm({
@@ -57,6 +58,7 @@ export default function VehicleForm({
         tax_amount: vehicle?.tax_amount ? String(vehicle.tax_amount) : '0',
         asking_price: vehicle?.asking_price ? String(vehicle.asking_price) : '',
         status: vehicle?.status ?? 'PREPARATION',
+        photos: [],
     });
 
     const showroomCapital = Number(form.data.showroom_capital || 0);
@@ -89,7 +91,9 @@ export default function VehicleForm({
             return;
         }
 
-        form.post(route('vehicles.store'));
+        form.post(route('vehicles.store'), {
+            forceFormData: true,
+        });
     };
 
     return (
@@ -245,6 +249,29 @@ export default function VehicleForm({
                                 />
                             </Field>
                         </div>
+
+                        {mode === 'create' && (
+                            <Field label="Foto Kendaraan" error={form.errors.photos}>
+                                <input
+                                    type="file"
+                                    accept=".jpg,.jpeg,.png,.webp"
+                                    multiple
+                                    className="block w-full rounded-md border border-neutral-300 bg-white text-sm text-neutral-700 file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'photos',
+                                            Array.from(
+                                                event.target.files ?? [],
+                                            ),
+                                        )
+                                    }
+                                />
+                                <p className="mt-2 text-xs text-neutral-500">
+                                    Maksimal 5 foto, 5 MB per foto. Foto pertama
+                                    menjadi cover.
+                                </p>
+                            </Field>
+                        )}
                     </CardContent>
                 </Card>
 

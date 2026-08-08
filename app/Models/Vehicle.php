@@ -66,6 +66,16 @@ class Vehicle extends Model
         return $this->hasMany(VehicleDocument::class);
     }
 
+    public function photos(): HasMany
+    {
+        return $this->hasMany(VehiclePhoto::class);
+    }
+
+    public function coverPhoto(): HasOne
+    {
+        return $this->hasOne(VehiclePhoto::class)->where('is_cover', true);
+    }
+
     public function sale(): HasOne
     {
         return $this->hasOne(Sale::class);

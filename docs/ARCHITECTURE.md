@@ -1369,6 +1369,16 @@ customers/{customer_uuid}/ktp/{uuid}.jpg
 
 Jangan menggunakan nama pelanggan sebagai nama path public.
 
+MVP implementation note:
+
+```text
+vehicles/{vehicle_id}/photos/{generated_filename}
+```
+
+Foto kendaraan tetap disimpan pada Laravel private local storage dan hanya
+ditampilkan lewat authenticated Laravel route. Konversi otomatis ke WebP dapat
+ditambahkan setelah kebutuhan compression final dikonfirmasi.
+
 ---
 
 # 13. External Integrations
