@@ -8,6 +8,7 @@ type NavItem = {
     href: string;
     adminOnly?: boolean;
     disabled?: boolean;
+    shortLabel?: string;
 };
 
 type NavSection = {
@@ -17,12 +18,18 @@ type NavSection = {
 
 const navigation: NavSection[] = [
     {
-        items: [{ label: 'Dashboard', href: '/dashboard' }],
+        items: [
+            { label: 'Dashboard', href: '/dashboard', shortLabel: 'Dasbor' },
+        ],
     },
     {
         label: 'Kendaraan',
         items: [
-            { label: 'Data Kendaraan', href: '/vehicles' },
+            {
+                label: 'Data Kendaraan',
+                href: '/vehicles',
+                shortLabel: 'Kendaraan',
+            },
             {
                 label: 'Tambah Kendaraan',
                 href: '/vehicles/create',
@@ -33,14 +40,18 @@ const navigation: NavSection[] = [
     {
         label: 'Penjualan',
         items: [
-            { label: 'Rekap Penjualan', href: '/sales' },
+            { label: 'Rekap Penjualan', href: '/sales', shortLabel: 'Jual' },
             { label: 'Customer', href: '/customers' },
         ],
     },
     {
         items: [
-            { label: 'Operasional', href: '/operations' },
-            { label: 'Laporan', href: '/reports' },
+            {
+                label: 'Operasional',
+                href: '/operations',
+                shortLabel: 'Operasi',
+            },
+            { label: 'Laporan', href: '/reports', shortLabel: 'Laporan' },
         ],
     },
     {
@@ -79,6 +90,25 @@ function roleLabel(role: PageProps['auth']['user']['role']) {
     return role === 'owner' ? 'Owner Showroom' : 'Admin Showroom';
 }
 
+function visibleNavigation(isAdmin: boolean) {
+    return navigation
+        .map((section) => ({
+            ...section,
+            items: section.items.filter((item) => !item.adminOnly || isAdmin),
+        }))
+        .filter((section) => section.items.length > 0);
+}
+
+function routeMatches(currentUrl: string, href: string) {
+    return currentUrl === href || currentUrl.startsWith(`${href}/`);
+}
+
+function activeHrefFor(items: NavItem[], currentUrl: string) {
+    return items
+        .filter((item) => routeMatches(currentUrl, item.href))
+        .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+}
+
 function Brand() {
     return (
         <Link
@@ -109,17 +139,15 @@ function NavItems({
     currentUrl: string;
     onNavigate?: () => void;
 }) {
+    const sections = visibleNavigation(isAdmin);
+    const activeHref = activeHrefFor(
+        sections.flatMap((section) => section.items),
+        currentUrl,
+    );
+
     return (
         <nav className="space-y-6" aria-label="Navigasi utama">
-            {navigation.map((section, sectionIndex) => {
-                const items = section.items.filter(
-                    (item) => !item.adminOnly || isAdmin,
-                );
-
-                if (items.length === 0) {
-                    return null;
-                }
-
+            {sections.map((section, sectionIndex) => {
                 return (
                     <div key={section.label ?? sectionIndex}>
                         {section.label && (
@@ -129,10 +157,8 @@ function NavItems({
                         )}
 
                         <div className="space-y-1">
-                            {items.map((item) => {
-                                const active = currentUrl.startsWith(
-                                    item.href,
-                                );
+                            {section.items.map((item) => {
+                                const active = item.href === activeHref;
                                 const classes = [
                                     'flex w-full items-center rounded-md px-3 py-2.5 text-sm font-medium transition duration-150 focus:outline-none focus:ring-2 focus:ring-brand-yellow-400',
                                     active
@@ -179,6 +205,94 @@ function NavItems({
     );
 }
 
+function BottomNavigation({
+    isAdmin,
+    currentUrl,
+}: {
+    isAdmin: boolean;
+    currentUrl: string;
+}) {
+    const items = visibleNavigation(isAdmin)
+        .flatMap((section) => section.items)
+        .filter((item) =>
+            [
+                '/dashboard',
+                '/vehicles',
+                '/sales',
+                '/operations',
+                '/reports',
+            ].includes(item.href),
+        );
+    const activeHref = activeHrefFor(items, currentUrl);
+
+    return (
+        <nav
+            className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-surface px-2 pb-2 pt-1 shadow-floating lg:hidden"
+            aria-label="Navigasi mobile utama"
+            style={{
+                paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
+            }}
+        >
+            <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
+                {items.map((item) => {
+                    const active = item.href === activeHref;
+
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={[
+                                'flex min-h-14 flex-col items-center justify-center rounded-md px-1 py-1 text-center text-[11px] font-semibold leading-4 transition duration-150 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500',
+                                active
+                                    ? 'bg-brand-yellow-400/25 text-brand-black'
+                                    : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900',
+                            ].join(' ')}
+                            aria-current={active ? 'page' : undefined}
+                        >
+                            <span
+                                className={[
+                                    'mb-1 h-1.5 w-1.5 rounded-full',
+                                    active
+                                        ? 'bg-brand-yellow-500'
+                                        : 'bg-transparent',
+                                ].join(' ')}
+                                aria-hidden="true"
+                            />
+                            <span className="truncate">
+                                {item.shortLabel ?? item.label}
+                            </span>
+                        </Link>
+                    );
+                })}
+            </div>
+        </nav>
+    );
+}
+
+function UserSummary({
+    name,
+    role,
+}: {
+    name: string;
+    role: PageProps['auth']['user']['role'];
+}) {
+    return (
+        <div className="flex min-w-0 items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-yellow-500 text-sm font-bold text-brand-black">
+                {name.charAt(0).toUpperCase()}
+            </span>
+            <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold text-white">
+                    {name}
+                </span>
+                <span className="block truncate text-xs text-neutral-300">
+                    {roleLabel(role)}
+                </span>
+            </span>
+        </div>
+    );
+}
+
 export default function Authenticated({
     header,
     children,
@@ -207,6 +321,10 @@ export default function Authenticated({
 
                 <div className="mt-8 flex-1 overflow-y-auto">
                     <NavItems isAdmin={isAdmin} currentUrl={url} />
+                </div>
+
+                <div className="border-t border-white/10 pt-4">
+                    <UserSummary name={user.name} role={user.role} />
                 </div>
             </aside>
 
@@ -252,6 +370,10 @@ export default function Authenticated({
                                 currentUrl={url}
                                 onNavigate={() => setMobileSidebarOpen(false)}
                             />
+                        </div>
+
+                        <div className="border-t border-white/10 pt-4">
+                            <UserSummary name={user.name} role={user.role} />
                         </div>
                     </aside>
                 </div>
@@ -324,10 +446,12 @@ export default function Authenticated({
                     </div>
                 </header>
 
-                <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+                <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-[1600px] px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-8">
                     {children}
                 </main>
             </div>
+
+            <BottomNavigation isAdmin={isAdmin} currentUrl={url} />
         </div>
     );
 }
