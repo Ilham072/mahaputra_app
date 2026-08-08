@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\OperationalExpenseController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\VehicleCostController;
@@ -42,6 +43,7 @@ Route::middleware(['auth', 'role:admin'])->group(function (): void {
 Route::middleware(['auth', 'role:admin,owner'])->group(function (): void {
     Route::get('/operations', [OperationalExpenseController::class, 'index'])->name('operations.index');
     Route::get('/operations/{expense}/proof', [OperationalExpenseController::class, 'downloadProof'])->name('operations.proof.download');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
     Route::get('/sales/{sale}/ktp', [SaleController::class, 'downloadKtp'])->name('sales.ktp.download');

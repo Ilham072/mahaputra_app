@@ -37,7 +37,7 @@ const navigation: NavSection[] = [
     {
         items: [
             { label: 'Operasional', href: '/operations' },
-            { label: 'Laporan', href: '/reports', disabled: true },
+            { label: 'Laporan', href: '/reports' },
         ],
     },
     {
