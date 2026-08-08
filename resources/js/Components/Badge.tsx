@@ -15,7 +15,7 @@ type BadgeProps = PropsWithChildren<HTMLAttributes<HTMLSpanElement>> & {
 
 const variantClasses: Record<BadgeVariant, string> = {
     neutral: 'border-neutral-200 bg-neutral-100 text-neutral-700',
-    primary: 'border-yellow-200 bg-yellow-100 text-neutral-950',
+    primary: 'border-brand-yellow-400/40 bg-brand-yellow-400/20 text-brand-black',
     success: 'border-green-200 bg-green-50 text-green-700',
     warning: 'border-amber-200 bg-amber-50 text-amber-700',
     danger: 'border-red-200 bg-red-50 text-red-700',
@@ -32,7 +32,7 @@ export default function Badge({
         <span
             {...props}
             className={cn(
-                'inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium',
+                'inline-flex items-center rounded-sm border px-2 py-0.5 text-xs font-medium',
                 variantClasses[variant],
                 className,
             )}

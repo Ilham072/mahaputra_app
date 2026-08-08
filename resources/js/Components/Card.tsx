@@ -10,7 +10,7 @@ export function Card({
         <div
             {...props}
             className={cn(
-                'rounded-lg border border-neutral-200 bg-white shadow-sm',
+                'rounded-lg border border-neutral-200 bg-surface shadow-card',
                 className,
             )}
         >
@@ -51,7 +51,7 @@ export function CardTitle({
     return (
         <h2
             {...props}
-            className={cn('text-lg font-semibold text-neutral-950', className)}
+            className={cn('text-lg font-semibold leading-7 text-neutral-950', className)}
         >
             {children}
         </h2>

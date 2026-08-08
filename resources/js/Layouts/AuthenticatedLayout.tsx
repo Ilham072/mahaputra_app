@@ -83,9 +83,9 @@ function Brand() {
     return (
         <Link
             href="/"
-            className="flex items-center gap-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="flex items-center gap-3 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-yellow-400"
         >
-            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-yellow-500 text-base font-bold text-neutral-950">
+            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-brand-yellow-500 text-base font-bold text-brand-black">
                 M
             </span>
             <span className="min-w-0">
@@ -134,9 +134,9 @@ function NavItems({
                                     item.href,
                                 );
                                 const classes = [
-                                    'flex w-full items-center rounded-md px-3 py-2.5 text-sm font-medium transition duration-150 focus:outline-none focus:ring-2 focus:ring-yellow-400',
+                                    'flex w-full items-center rounded-md px-3 py-2.5 text-sm font-medium transition duration-150 focus:outline-none focus:ring-2 focus:ring-brand-yellow-400',
                                     active
-                                        ? 'bg-yellow-500 text-neutral-950'
+                                        ? 'bg-brand-yellow-500 text-brand-black'
                                         : 'text-neutral-300 hover:bg-neutral-800 hover:text-white',
                                     item.disabled
                                         ? 'cursor-not-allowed opacity-45 hover:bg-transparent hover:text-neutral-300'
@@ -201,8 +201,8 @@ export default function Authenticated({
     }, []);
 
     return (
-        <div className="min-h-screen bg-neutral-50 text-neutral-900">
-            <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-neutral-950 px-4 py-5 lg:flex">
+        <div className="min-h-screen bg-canvas text-neutral-900">
+            <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-brand-black px-4 py-5 lg:flex">
                 <Brand />
 
                 <div className="mt-8 flex-1 overflow-y-auto">
@@ -214,13 +214,13 @@ export default function Authenticated({
                 <div className="fixed inset-0 z-40 lg:hidden">
                     <button
                         type="button"
-                        className="absolute inset-0 h-full w-full bg-neutral-950/60"
+                        className="absolute inset-0 h-full w-full bg-brand-black/60"
                         aria-label="Tutup navigasi"
                         onClick={() => setMobileSidebarOpen(false)}
                     />
 
                     <aside
-                        className="relative flex h-full w-80 max-w-[86vw] flex-col bg-neutral-950 px-4 py-5 shadow-lg"
+                        className="relative flex h-full w-80 max-w-[86vw] flex-col bg-brand-black px-4 py-5 shadow-floating"
                         role="dialog"
                         aria-modal="true"
                         aria-label="Navigasi"
@@ -229,7 +229,7 @@ export default function Authenticated({
                             <Brand />
                             <button
                                 type="button"
-                                className="inline-flex h-11 w-11 items-center justify-center rounded-md text-neutral-300 hover:bg-neutral-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                className="inline-flex h-11 w-11 items-center justify-center rounded-md text-neutral-300 hover:bg-neutral-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-yellow-400"
                                 aria-label="Tutup navigasi"
                                 onClick={() => setMobileSidebarOpen(false)}
                             >
@@ -258,11 +258,11 @@ export default function Authenticated({
             )}
 
             <div className="lg:pl-64">
-                <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white">
+                <header className="sticky top-0 z-20 border-b border-neutral-200 bg-surface">
                     <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
                         <button
                             type="button"
-                            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-yellow-500 lg:hidden"
+                            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 lg:hidden"
                             aria-label="Buka navigasi"
                             onClick={() => setMobileSidebarOpen(true)}
                         >
@@ -284,7 +284,7 @@ export default function Authenticated({
                             <Dropdown.Trigger>
                                 <button
                                     type="button"
-                                    className="flex min-w-0 items-center gap-3 rounded-md px-2 py-1.5 text-left hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    className="flex min-w-0 items-center gap-3 rounded-md px-2 py-1.5 text-left hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500"
                                 >
                                     <span className="hidden min-w-0 sm:block">
                                         <span className="block truncate text-sm font-semibold text-neutral-900">
@@ -294,7 +294,7 @@ export default function Authenticated({
                                             {roleLabel(user.role)}
                                         </span>
                                     </span>
-                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-neutral-950 text-sm font-semibold text-white">
+                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-black text-sm font-semibold text-white">
                                         {user.name.charAt(0).toUpperCase()}
                                     </span>
                                 </button>
