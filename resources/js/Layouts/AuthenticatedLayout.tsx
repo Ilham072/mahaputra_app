@@ -32,7 +32,10 @@ const navigation: NavSection[] = [
     },
     {
         label: 'Penjualan',
-        items: [{ label: 'Rekap Penjualan', href: '/sales' }],
+        items: [
+            { label: 'Rekap Penjualan', href: '/sales' },
+            { label: 'Customer', href: '/customers' },
+        ],
     },
     {
         items: [

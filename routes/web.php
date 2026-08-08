@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\OperationalExpenseController;
@@ -44,9 +45,14 @@ Route::middleware(['auth', 'role:admin'])->group(function (): void {
     Route::patch('/vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
     Route::get('/sales/{sale}/edit', [SaleController::class, 'edit'])->name('sales.edit');
     Route::patch('/sales/{sale}', [SaleController::class, 'update'])->name('sales.update');
+    Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
+    Route::patch('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
 });
 
 Route::middleware(['auth', 'role:admin,owner'])->group(function (): void {
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+    Route::get('/customers/{customer}/ktp', [CustomerController::class, 'downloadKtp'])->name('customers.ktp.download');
     Route::get('/operations', [OperationalExpenseController::class, 'index'])->name('operations.index');
     Route::get('/operations/{expense}/proof', [OperationalExpenseController::class, 'downloadProof'])->name('operations.proof.download');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
