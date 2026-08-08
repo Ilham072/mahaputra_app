@@ -29,6 +29,18 @@ php artisan test
 npm run build
 ```
 
+## UAT Demo Data
+
+For local manual UAT, run the deterministic demo seeder after migrations:
+
+```bash
+php artisan db:seed --class=UatDemoSeeder
+```
+
+Use `admin@mahaputra.local` / `password` or `owner@mahaputra.local` / `password`.
+
+See `docs/UAT_CHECKLIST.md` for the manual UAT flows.
+
 ## Documentation
 
 Project requirements and implementation rules are documented in:
