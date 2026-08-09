@@ -1,13 +1,17 @@
 import Button from '@/Components/Button';
 import { Card, CardContent, CardTitle } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
+import DataTable from '@/Components/DataTable';
+import type { DataTableColumn } from '@/Components/DataTable';
 import EmptyState from '@/Components/EmptyState';
+import FormField from '@/Components/FormField';
 import KpiCard from '@/Components/KpiCard';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
+import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import { ReactNode, useState } from 'react';
+import { FormEventHandler, ReactNode, useState } from 'react';
 
 type TrendPoint = {
     month: string;
@@ -98,9 +102,67 @@ export default function Dashboard({
         },
     ];
 
-    const filterMonth = () => {
+    const filterMonth: FormEventHandler = (event) => {
+        event.preventDefault();
         router.get(route('dashboard'), { month }, { preserveState: true });
     };
+
+    const recentSaleColumns: Array<DataTableColumn<RecentSale>> = [
+        {
+            key: 'sale_date',
+            header: 'Tanggal',
+            cell: (sale) => sale.sale_date,
+        },
+        {
+            key: 'vehicle',
+            header: 'Kendaraan',
+            cellClassName: 'font-medium text-neutral-950',
+            cell: (sale) => (
+                <>
+                    <Link
+                        className="underline-offset-2 hover:underline"
+                        href={route('sales.show', sale.id)}
+                    >
+                        {sale.vehicle}
+                    </Link>
+                    <div className="text-xs font-normal text-neutral-500">
+                        {sale.plate_number}
+                    </div>
+                </>
+            ),
+        },
+        {
+            key: 'customer',
+            header: 'Pembeli',
+            cell: (sale) => (
+                <>
+                    {sale.customer_name}
+                    <div className="text-xs text-neutral-500">{sale.area}</div>
+                </>
+            ),
+        },
+        {
+            key: 'payment',
+            header: 'Pembayaran',
+            cell: (sale) => (
+                <StatusBadge type="payment" value={sale.payment_type} />
+            ),
+        },
+        {
+            key: 'selling_price',
+            header: 'Harga',
+            align: 'right',
+            cellClassName: 'font-semibold text-neutral-950',
+            cell: (sale) => <CurrencyDisplay value={sale.selling_price} />,
+        },
+        {
+            key: 'profit',
+            header: 'Laba',
+            align: 'right',
+            cellClassName: 'font-semibold text-neutral-950',
+            cell: (sale) => <CurrencyDisplay value={sale.profit_snapshot} />,
+        },
+    ];
 
     return (
         <AuthenticatedLayout
@@ -115,7 +177,7 @@ export default function Dashboard({
 
             <div className="space-y-6">
                 <Card className="p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                         <div>
                             <div className="text-sm font-semibold text-neutral-950">
                                 Periode {period.label}
@@ -124,21 +186,27 @@ export default function Dashboard({
                                 {period.from} sampai {period.to}
                             </div>
                         </div>
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                            <label className="sr-only" htmlFor="dashboard-month">
-                                Bulan dashboard
-                            </label>
-                            <input
-                                id="dashboard-month"
-                                type="month"
-                                className="h-10 rounded-md border-neutral-300 text-sm shadow-sm focus:border-brand-yellow-500 focus:ring-brand-yellow-500"
-                                value={month}
-                                onChange={(event) => setMonth(event.target.value)}
-                            />
-                            <Button type="button" variant="secondary" onClick={filterMonth}>
+                        <form
+                            onSubmit={filterMonth}
+                            className="grid gap-3 sm:grid-cols-[minmax(180px,220px)_auto]"
+                        >
+                            <FormField label="Bulan">
+                                <TextInput
+                                    type="month"
+                                    value={month}
+                                    onChange={(event) =>
+                                        setMonth(event.target.value)
+                                    }
+                                />
+                            </FormField>
+                            <Button
+                                type="submit"
+                                variant="secondary"
+                                className="self-end"
+                            >
                                 Terapkan
                             </Button>
-                        </div>
+                        </form>
                     </div>
                 </Card>
 
@@ -160,6 +228,7 @@ export default function Dashboard({
                         maxValue={maxSales}
                         getValue={(item) => item.sales_count}
                         getLabel={(item) => `${item.sales_count} transaksi`}
+                        barClassName="bg-brand-yellow-500"
                     />
                     <TrendCard
                         title="Tren Laba Kendaraan"
@@ -169,6 +238,7 @@ export default function Dashboard({
                         getLabel={(item) => (
                             <CurrencyDisplay value={item.profit_total} />
                         )}
+                        barClassName="bg-brand-black"
                     />
                 </div>
 
@@ -188,67 +258,12 @@ export default function Dashboard({
                                     <EmptyState title="Belum ada penjualan terbaru." />
                                 </div>
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-neutral-200">
-                                        <thead className="bg-neutral-50">
-                                            <tr>
-                                                {[
-                                                    'Tanggal',
-                                                    'Kendaraan',
-                                                    'Pembeli',
-                                                    'Pembayaran',
-                                                    'Harga',
-                                                    'Laba',
-                                                ].map((heading) => (
-                                                    <th
-                                                        key={heading}
-                                                        className="px-4 py-3 text-left text-xs font-semibold uppercase text-neutral-500"
-                                                    >
-                                                        {heading}
-                                                    </th>
-                                                ))}
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-neutral-200 bg-white">
-                                            {recentSales.map((sale) => (
-                                                <tr key={sale.id}>
-                                                    <td className="whitespace-nowrap px-4 py-3 text-sm text-neutral-700">
-                                                        {sale.sale_date}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm font-medium text-neutral-950">
-                                                        <Link
-                                                            className="underline-offset-2 hover:underline"
-                                                            href={route('sales.show', sale.id)}
-                                                        >
-                                                            {sale.vehicle}
-                                                        </Link>
-                                                        <div className="text-xs text-neutral-500">
-                                                            {sale.plate_number}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-neutral-700">
-                                                        {sale.customer_name}
-                                                        <div className="text-xs text-neutral-500">
-                                                            {sale.area}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <StatusBadge
-                                                            type="payment"
-                                                            value={sale.payment_type}
-                                                        />
-                                                    </td>
-                                                    <td className="whitespace-nowrap px-4 py-3 text-sm font-semibold text-neutral-950">
-                                                        <CurrencyDisplay value={sale.selling_price} />
-                                                    </td>
-                                                    <td className="whitespace-nowrap px-4 py-3 text-sm font-semibold text-neutral-950">
-                                                        <CurrencyDisplay value={sale.profit_snapshot} />
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <DataTable
+                                    rows={recentSales}
+                                    columns={recentSaleColumns}
+                                    getRowKey={(sale) => sale.id}
+                                    minWidth="min-w-[760px]"
+                                />
                             )}
                         </CardContent>
                     </Card>
@@ -311,12 +326,14 @@ function TrendCard({
     maxValue,
     getValue,
     getLabel,
+    barClassName,
 }: {
     title: string;
     items: TrendPoint[];
     maxValue: number;
     getValue: (item: TrendPoint) => number;
     getLabel: (item: TrendPoint) => ReactNode;
+    barClassName: string;
 }) {
     const hasData = items.some((item) => getValue(item) > 0);
 
@@ -333,18 +350,18 @@ function TrendCard({
                             return (
                                 <div
                                     key={`${title}-${item.month}`}
-                                    className="grid grid-cols-[72px_minmax(0,1fr)_120px] items-center gap-3"
+                                    className="grid gap-2 sm:grid-cols-[72px_minmax(0,1fr)_120px] sm:items-center sm:gap-3"
                                 >
                                     <div className="text-xs font-medium text-neutral-500">
                                         {item.label}
                                     </div>
                                     <div className="h-3 overflow-hidden rounded-full bg-neutral-100">
                                         <div
-                                            className="h-full rounded-full bg-brand-yellow-500"
+                                            className={`h-full rounded-full ${barClassName}`}
                                             style={{ width }}
                                         />
                                     </div>
-                                    <div className="text-right text-xs font-semibold text-neutral-950">
+                                    <div className="text-xs font-semibold text-neutral-950 sm:text-right">
                                         {getLabel(item)}
                                     </div>
                                 </div>
