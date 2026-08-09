@@ -176,7 +176,7 @@ export default function Dashboard({
             <Head title="Dashboard" />
 
             <div className="space-y-6">
-                <Card className="p-4">
+                <Card className="p-4 sm:p-5">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                         <div>
                             <div className="text-sm font-semibold text-neutral-950">
@@ -188,7 +188,7 @@ export default function Dashboard({
                         </div>
                         <form
                             onSubmit={filterMonth}
-                            className="grid gap-3 sm:grid-cols-[minmax(180px,220px)_auto]"
+                            className="grid gap-3 sm:grid-cols-[minmax(180px,220px)_auto] lg:min-w-[340px]"
                         >
                             <FormField label="Bulan">
                                 <TextInput
@@ -202,7 +202,7 @@ export default function Dashboard({
                             <Button
                                 type="submit"
                                 variant="secondary"
-                                className="self-end"
+                                className="w-full self-end sm:w-auto"
                             >
                                 Terapkan
                             </Button>
@@ -210,7 +210,7 @@ export default function Dashboard({
                     </div>
                 </Card>
 
-                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                     {kpis.map((item) => (
                         <KpiCard
                             key={item.label}
@@ -262,7 +262,7 @@ export default function Dashboard({
                                     rows={recentSales}
                                     columns={recentSaleColumns}
                                     getRowKey={(sale) => sale.id}
-                                    minWidth="min-w-[680px]"
+                                    minWidth="min-w-[620px] sm:min-w-[680px]"
                                 />
                             )}
                         </CardContent>
@@ -350,7 +350,7 @@ function TrendCard({
                             return (
                                 <div
                                     key={`${title}-${item.month}`}
-                                    className="grid grid-cols-[56px_minmax(0,1fr)] items-center gap-x-3 gap-y-1 sm:grid-cols-[72px_minmax(0,1fr)_120px]"
+                                    className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-x-3 gap-y-1 sm:grid-cols-[72px_minmax(0,1fr)_120px]"
                                 >
                                     <div className="text-xs font-medium text-neutral-500">
                                         {item.label}
@@ -361,7 +361,7 @@ function TrendCard({
                                             style={{ width }}
                                         />
                                     </div>
-                                    <div className="col-start-2 text-right text-xs font-semibold text-neutral-950 sm:col-start-auto">
+                                    <div className="col-start-2 text-right text-[11px] font-semibold leading-4 text-neutral-950 sm:col-start-auto sm:text-xs">
                                         {getLabel(item)}
                                     </div>
                                 </div>

@@ -9,9 +9,9 @@ type KpiCardProps = {
 
 export default function KpiCard({ label, value, caption }: KpiCardProps) {
     return (
-        <Card className="p-5">
+        <Card className="min-w-0 p-5 sm:p-4 2xl:p-5">
             <div className="text-sm font-medium text-neutral-500">{label}</div>
-            <div className="mt-3 text-2xl font-bold tabular-nums text-neutral-950">
+            <div className="mt-3 text-2xl font-bold leading-8 tabular-nums text-neutral-950">
                 {value}
             </div>
             {caption && (

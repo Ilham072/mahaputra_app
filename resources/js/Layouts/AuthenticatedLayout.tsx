@@ -315,7 +315,7 @@ export default function Authenticated({
     }, []);
 
     return (
-        <div className="min-h-screen bg-canvas text-neutral-900">
+        <div className="min-h-screen overflow-x-hidden bg-canvas text-neutral-900">
             <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-brand-black px-4 py-5 lg:flex">
                 <Brand />
 
@@ -379,9 +379,9 @@ export default function Authenticated({
                 </div>
             )}
 
-            <div className="lg:pl-64">
+            <div className="min-w-0 lg:pl-64">
                 <header className="sticky top-0 z-20 border-b border-neutral-200 bg-surface">
-                    <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+                    <div className="flex h-16 min-w-0 items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8">
                         <button
                             type="button"
                             className="inline-flex h-11 w-11 items-center justify-center rounded-md text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 lg:hidden"
@@ -446,7 +446,7 @@ export default function Authenticated({
                     </div>
                 </header>
 
-                <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-[1600px] px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-8">
+                <main className="mx-auto min-h-[calc(100vh-4rem)] w-full max-w-[1600px] px-4 pb-32 pt-5 sm:px-6 sm:pt-6 lg:px-8 lg:pb-8">
                     {children}
                 </main>
             </div>
