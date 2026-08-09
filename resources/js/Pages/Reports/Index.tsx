@@ -1,17 +1,25 @@
 import Button from '@/Components/Button';
 import { Card, CardContent, CardTitle } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
+import DataTable, { type DataTableColumn } from '@/Components/DataTable';
 import EmptyState from '@/Components/EmptyState';
 import KpiCard from '@/Components/KpiCard';
 import PageHeader from '@/Components/PageHeader';
+import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { cn } from '@/lib/classNames';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
-import { FormEventHandler, lazy, ReactNode, Suspense, useState } from 'react';
 import {
+    type FormEventHandler,
+    lazy,
+    type ReactNode,
+    Suspense,
+    useState,
+} from 'react';
+import type {
     ReportFilters,
     ReportPdfPayload,
     ReportSummary,
@@ -67,6 +75,129 @@ export default function ReportsIndex({
     const [pdfPayload, setPdfPayload] = useState<ReportPdfPayload | null>(null);
     const [pdfLoading, setPdfLoading] = useState(false);
     const [pdfError, setPdfError] = useState<string | null>(null);
+    const saleColumns: Array<DataTableColumn<SaleReportRow>> = [
+        {
+            key: 'sale_date',
+            header: 'Tanggal',
+            cellClassName: 'whitespace-nowrap',
+            cell: (sale) => sale.sale_date,
+        },
+        {
+            key: 'area',
+            header: 'Area',
+            cellClassName: 'whitespace-nowrap',
+            cell: (sale) => sale.area,
+        },
+        {
+            key: 'employee',
+            header: 'PIC',
+            cellClassName: 'whitespace-nowrap',
+            cell: (sale) => sale.employee,
+        },
+        {
+            key: 'vehicle',
+            header: 'Kendaraan',
+            cellClassName: 'font-medium text-neutral-950',
+            cell: (sale) => (
+                <>
+                    {sale.vehicle}
+                    <div className="text-xs text-neutral-500">
+                        {sale.plate_number}
+                    </div>
+                    <div className="text-xs text-neutral-500">
+                        Beli {sale.purchase_date}
+                    </div>
+                </>
+            ),
+        },
+        {
+            key: 'year',
+            header: 'Tahun',
+            cellClassName: 'whitespace-nowrap',
+            cell: (sale) => sale.year,
+        },
+        {
+            key: 'capital_type',
+            header: 'Modal',
+            cell: (sale) => (
+                <StatusBadge type="capital" value={sale.capital_type} />
+            ),
+        },
+        {
+            key: 'payment_type',
+            header: 'Bayar',
+            cell: (sale) => (
+                <StatusBadge type="payment" value={sale.payment_type} />
+            ),
+        },
+        {
+            key: 'selling_price',
+            header: 'Harga Jual',
+            align: 'right',
+            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
+            cell: (sale) => <CurrencyDisplay value={sale.selling_price} />,
+        },
+        {
+            key: 'dp',
+            header: 'DP',
+            align: 'right',
+            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
+            cell: (sale) => <CurrencyDisplay value={sale.dp} />,
+        },
+        {
+            key: 'outstanding_dp',
+            header: 'DP Terutang',
+            align: 'right',
+            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
+            cell: (sale) => <CurrencyDisplay value={sale.outstanding_dp} />,
+        },
+        {
+            key: 'initial_capital_snapshot',
+            header: 'Modal Awal',
+            align: 'right',
+            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
+            cell: (sale) => (
+                <CurrencyDisplay value={sale.initial_capital_snapshot} />
+            ),
+        },
+        {
+            key: 'vehicle_cost_snapshot',
+            header: 'Total Biaya Kendaraan',
+            align: 'right',
+            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
+            cell: (sale) => (
+                <CurrencyDisplay value={sale.vehicle_cost_snapshot} />
+            ),
+        },
+        {
+            key: 'final_capital_snapshot',
+            header: 'Modal Akhir',
+            align: 'right',
+            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
+            cell: (sale) => (
+                <CurrencyDisplay value={sale.final_capital_snapshot} />
+            ),
+        },
+        {
+            key: 'profit_snapshot',
+            header: 'Laba',
+            align: 'right',
+            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
+            cell: (sale) => <CurrencyDisplay value={sale.profit_snapshot} />,
+        },
+        {
+            key: 'actions',
+            header: '',
+            align: 'right',
+            cell: (sale) => (
+                <Link href={route('sales.show', sale.id)}>
+                    <Button type="button" variant="outline" size="sm">
+                        Detail
+                    </Button>
+                </Link>
+            ),
+        },
+    ];
     const summaryCards: Array<{
         label: string;
         value: ReactNode;
@@ -332,87 +463,12 @@ export default function ReportsIndex({
                                     />
                                 </div>
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-[1320px] divide-y divide-neutral-200">
-                                        <thead className="bg-neutral-50">
-                                            <tr>
-                                                {[
-                                                    'Tanggal',
-                                                    'Area',
-                                                    'PIC',
-                                                    'Kendaraan',
-                                                    'Tahun',
-                                                    'Modal',
-                                                    'Bayar',
-                                                    'Harga Jual',
-                                                    'DP',
-                                                    'DP Terutang',
-                                                    'Modal Awal',
-                                                    'Total Biaya Kendaraan',
-                                                    'Modal Akhir',
-                                                    'Laba',
-                                                    '',
-                                                ].map((heading) => (
-                                                    <th
-                                                        key={heading}
-                                                        className="px-4 py-3 text-left text-xs font-semibold uppercase text-neutral-500"
-                                                    >
-                                                        {heading}
-                                                    </th>
-                                                ))}
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-neutral-200 bg-white">
-                                            {sales.data.map((sale) => (
-                                                <tr key={sale.id}>
-                                                    <Cell>{sale.sale_date}</Cell>
-                                                    <Cell>{sale.area}</Cell>
-                                                    <Cell>{sale.employee}</Cell>
-                                                    <td className="px-4 py-3 text-sm font-medium text-neutral-950">
-                                                        {sale.vehicle}
-                                                        <div className="text-xs text-neutral-500">
-                                                            {sale.plate_number}
-                                                        </div>
-                                                        <div className="text-xs text-neutral-500">
-                                                            Beli {sale.purchase_date}
-                                                        </div>
-                                                    </td>
-                                                    <Cell>{sale.year}</Cell>
-                                                    <td className="px-4 py-3">
-                                                        <StatusBadge
-                                                            type="capital"
-                                                            value={sale.capital_type}
-                                                        />
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <StatusBadge
-                                                            type="payment"
-                                                            value={sale.payment_type}
-                                                        />
-                                                    </td>
-                                                    <Money value={sale.selling_price} />
-                                                    <Money value={sale.dp} />
-                                                    <Money value={sale.outstanding_dp} />
-                                                    <Money value={sale.initial_capital_snapshot} />
-                                                    <Money value={sale.vehicle_cost_snapshot} />
-                                                    <Money value={sale.final_capital_snapshot} />
-                                                    <Money value={sale.profit_snapshot} />
-                                                    <td className="px-4 py-3 text-right">
-                                                        <Link href={route('sales.show', sale.id)}>
-                                                            <Button
-                                                                type="button"
-                                                                variant="outline"
-                                                                size="sm"
-                                                            >
-                                                                Detail
-                                                            </Button>
-                                                        </Link>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <DataTable
+                                    rows={sales.data}
+                                    columns={saleColumns}
+                                    getRowKey={(sale) => sale.id}
+                                    minWidth="min-w-[1320px]"
+                                />
                             )}
                         </CardContent>
                     </Card>
@@ -514,8 +570,8 @@ function PdfExportButton({
 
 function exportLinkClasses(className?: string) {
     return cn(
-        'inline-flex h-8 items-center justify-center rounded-md border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-900 transition duration-150 ease-out',
-        'hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2',
+        'inline-flex h-8 items-center justify-center rounded-md border border-neutral-300 bg-surface px-3 text-sm font-medium text-neutral-900 transition duration-150 ease-out',
+        'hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2',
         className,
     );
 }
@@ -547,28 +603,11 @@ function Select({
     children: ReactNode;
 }) {
     return (
-        <select
-            className="block h-10 w-full rounded-md border-neutral-300 text-sm shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+        <SelectInput
             value={value}
             onChange={(event) => onChange(event.target.value)}
         >
             {children}
-        </select>
-    );
-}
-
-function Cell({ children }: { children: ReactNode }) {
-    return (
-        <td className="whitespace-nowrap px-4 py-3 text-sm text-neutral-700">
-            {children}
-        </td>
-    );
-}
-
-function Money({ value }: { value: number }) {
-    return (
-        <td className="whitespace-nowrap px-4 py-3 text-right text-sm font-semibold text-neutral-950">
-            <CurrencyDisplay value={value} />
-        </td>
+        </SelectInput>
     );
 }
