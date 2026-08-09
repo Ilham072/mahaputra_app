@@ -79,11 +79,11 @@ export default function VehicleIndex({
         >
             <Head title="Data Kendaraan" />
 
-            <div className="space-y-6">
-                <Card className="p-4">
+            <div className="space-y-5 lg:space-y-6">
+                <Card className="p-4 sm:p-5">
                     <form
                         onSubmit={submit}
-                        className="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_180px_180px_180px_auto_auto]"
+                        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_180px_180px_180px_auto_auto]"
                     >
                         <FormField label="Pencarian">
                             <TextInput
@@ -162,7 +162,7 @@ export default function VehicleIndex({
                         <Button
                             type="submit"
                             variant="secondary"
-                            className="self-end"
+                            className="w-full self-end"
                         >
                             Filter
                         </Button>
@@ -170,7 +170,7 @@ export default function VehicleIndex({
                             type="button"
                             variant="outline"
                             onClick={clearFilters}
-                            className="self-end"
+                            className="w-full self-end"
                         >
                             Bersihkan
                         </Button>
@@ -194,7 +194,7 @@ export default function VehicleIndex({
                         }
                     />
                 ) : (
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                         {vehicles.data.map((vehicle) => (
                             <VehicleCard
                                 key={vehicle.id}

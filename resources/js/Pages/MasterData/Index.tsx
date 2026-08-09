@@ -141,7 +141,7 @@ export default function MasterDataIndex({
         >
             <Head title={title} />
 
-            <div className="space-y-6">
+            <div className="space-y-5 lg:space-y-6">
                 {flash?.success && (
                     <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                         {flash.success}
@@ -164,7 +164,7 @@ export default function MasterDataIndex({
                     ))}
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+                <div className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
                     <Card>
                         <CardContent>
                             <form onSubmit={submit} className="space-y-5">
@@ -216,11 +216,12 @@ export default function MasterDataIndex({
                                     </label>
                                 )}
 
-                                <div className="flex flex-wrap gap-3">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                                     <Button
                                         type="submit"
                                         disabled={form.processing}
                                         isLoading={form.processing}
+                                        className="w-full sm:w-auto"
                                     >
                                         {editingItem
                                             ? 'Simpan Perubahan'
@@ -232,6 +233,7 @@ export default function MasterDataIndex({
                                             type="button"
                                             variant="outline"
                                             onClick={cancelEditing}
+                                            className="w-full sm:w-auto"
                                         >
                                             Batal
                                         </Button>
@@ -255,6 +257,7 @@ export default function MasterDataIndex({
                                     rows={items}
                                     columns={itemColumns}
                                     getRowKey={(item) => item.id}
+                                    minWidth="min-w-[520px]"
                                 />
                             )}
                         </CardContent>

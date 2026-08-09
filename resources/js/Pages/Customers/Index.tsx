@@ -108,12 +108,12 @@ export default function CustomerIndex({
         >
             <Head title="Customer" />
 
-            <div className="space-y-6">
+            <div className="space-y-5 lg:space-y-6">
                 <Card>
-                    <CardContent>
+                    <CardContent className="p-4 sm:p-5">
                         <form
                             onSubmit={submit}
-                            className="grid gap-3 md:grid-cols-[minmax(180px,1fr)_auto_auto]"
+                            className="grid gap-3 sm:grid-cols-[minmax(180px,1fr)_auto_auto]"
                         >
                             <TextInput
                                 placeholder="Cari nama atau WhatsApp"
@@ -124,13 +124,18 @@ export default function CustomerIndex({
                                     })
                                 }
                             />
-                            <Button type="submit" variant="secondary">
+                            <Button
+                                type="submit"
+                                variant="secondary"
+                                className="w-full sm:w-auto"
+                            >
                                 Filter
                             </Button>
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={clearFilters}
+                                className="w-full sm:w-auto"
                             >
                                 Bersihkan
                             </Button>
@@ -152,6 +157,7 @@ export default function CustomerIndex({
                                 rows={customers.data}
                                 columns={customerColumns}
                                 getRowKey={(customer) => customer.id}
+                                minWidth="min-w-[640px]"
                             />
                         )}
                     </CardContent>

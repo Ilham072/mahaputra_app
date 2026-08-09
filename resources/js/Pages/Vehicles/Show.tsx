@@ -152,14 +152,14 @@ export default function VehicleShow({
         >
             <Head title={`${vehicle.brand} ${vehicle.type}`} />
 
-            <div className="space-y-6">
+            <div className="space-y-5 lg:space-y-6">
                 {flash?.success && (
                     <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                         {flash.success}
                     </div>
                 )}
 
-                <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(360px,0.7fr)]">
+                <div className="grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(360px,0.7fr)]">
                     <Card className="overflow-hidden">
                         {vehicle.cover_photo_url ? (
                             <img
@@ -174,7 +174,7 @@ export default function VehicleShow({
                         )}
                     </Card>
 
-                    <div className="space-y-6">
+                    <div className="space-y-5">
                         <Card>
                             <CardContent className="space-y-5">
                                 <div className="flex flex-wrap gap-2">
@@ -282,7 +282,7 @@ export default function VehicleShow({
                     </div>
                 </div>
 
-                <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+                <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
                     {isAdmin && (
                         <Card>
                             <CardContent>
@@ -445,7 +445,7 @@ export default function VehicleShow({
                     </Card>
                 </div>
 
-                <div className="grid gap-6 xl:grid-cols-2">
+                <div className="grid gap-5 xl:grid-cols-2">
                     <PhotoGallery
                         vehicleId={vehicle.id}
                         photos={vehicle.photos}

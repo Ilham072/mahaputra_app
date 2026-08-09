@@ -111,6 +111,7 @@ export default function SaleIndex({ sales }: SaleIndexProps) {
                             rows={sales.data}
                             columns={columns}
                             getRowKey={(sale) => sale.id}
+                            minWidth="min-w-[900px]"
                         />
                     )}
                 </CardContent>

@@ -141,14 +141,14 @@ export default function OperationsIndex({
         >
             <Head title="Operasional" />
 
-            <div className="space-y-6">
+            <div className="space-y-5 lg:space-y-6">
                 {flash?.success && (
                     <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                         {flash.success}
                     </div>
                 )}
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2">
                     <Card>
                         <CardContent>
                             <div className="text-sm font-medium text-neutral-500">
@@ -173,7 +173,7 @@ export default function OperationsIndex({
                     </Card>
                 </div>
 
-                <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+                <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
                     {isAdmin && (
                         <Card>
                             <CardContent>
@@ -269,6 +269,7 @@ export default function OperationsIndex({
                                         type="submit"
                                         disabled={form.processing || categories.length === 0}
                                         isLoading={form.processing}
+                                        className="w-full sm:w-auto"
                                     >
                                         Simpan Transaksi
                                     </Button>
@@ -277,9 +278,9 @@ export default function OperationsIndex({
                         </Card>
                     )}
 
-                    <div className="space-y-6">
-                        <Card className="p-4">
-                            <form onSubmit={filter} className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto_auto]">
+                    <div className="space-y-5">
+                        <Card className="p-4 sm:p-5">
+                            <form onSubmit={filter} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_auto_auto]">
                                 <TextInput
                                     type="date"
                                     value={filterData.date_from}
@@ -307,10 +308,19 @@ export default function OperationsIndex({
                                         </option>
                                     ))}
                                 </SelectInput>
-                                <Button type="submit" variant="secondary">
+                                <Button
+                                    type="submit"
+                                    variant="secondary"
+                                    className="w-full"
+                                >
                                     Filter
                                 </Button>
-                                <Button type="button" variant="outline" onClick={clearFilters}>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={clearFilters}
+                                    className="w-full"
+                                >
                                     Bersihkan
                                 </Button>
                             </form>
@@ -330,6 +340,7 @@ export default function OperationsIndex({
                                         rows={expenses.data}
                                         columns={expenseColumns}
                                         getRowKey={(expense) => expense.id}
+                                        minWidth="min-w-[720px]"
                                     />
                                 )}
                             </CardContent>

@@ -104,14 +104,14 @@ export default function CustomerShow({ customer }: CustomerShowProps) {
         >
             <Head title={customer.name} />
 
-            <div className="space-y-6">
+            <div className="space-y-5 lg:space-y-6">
                 {flash?.success && (
                     <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                         {flash.success}
                     </div>
                 )}
 
-                <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+                <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
                     <Card>
                         <CardContent className="space-y-5">
                             <CardTitle>Data Customer</CardTitle>
@@ -156,6 +156,7 @@ export default function CustomerShow({ customer }: CustomerShowProps) {
                                     rows={customer.sales}
                                     columns={saleColumns}
                                     getRowKey={(sale) => sale.id}
+                                    minWidth="min-w-[760px]"
                                 />
                             )}
                         </CardContent>

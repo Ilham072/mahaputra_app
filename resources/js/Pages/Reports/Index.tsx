@@ -284,8 +284,8 @@ export default function ReportsIndex({
         >
             <Head title="Laporan" />
 
-            <div className="space-y-6">
-                <Card className="p-4">
+            <div className="space-y-5 lg:space-y-6">
+                <Card className="p-4 sm:p-5">
                     <form
                         onSubmit={submit}
                         className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_minmax(220px,1.3fr)_1fr_1fr_1fr_1fr_auto_auto]"
@@ -428,7 +428,7 @@ export default function ReportsIndex({
                     ))}
                 </section>
 
-                <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+                <div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
                     <Card>
                         <CardContent className="p-0">
                             <div className="flex flex-col gap-3 border-b border-neutral-200 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -467,7 +467,7 @@ export default function ReportsIndex({
                                     rows={sales.data}
                                     columns={saleColumns}
                                     getRowKey={(sale) => sale.id}
-                                    minWidth="min-w-[1320px]"
+                                    minWidth="min-w-[1200px] sm:min-w-[1320px]"
                                 />
                             )}
                         </CardContent>
