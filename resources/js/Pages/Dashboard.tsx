@@ -210,7 +210,7 @@ export default function Dashboard({
                     </div>
                 </Card>
 
-                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
                     {kpis.map((item) => (
                         <KpiCard
                             key={item.label}
@@ -262,7 +262,7 @@ export default function Dashboard({
                                     rows={recentSales}
                                     columns={recentSaleColumns}
                                     getRowKey={(sale) => sale.id}
-                                    minWidth="min-w-[760px]"
+                                    minWidth="min-w-[680px]"
                                 />
                             )}
                         </CardContent>
@@ -350,7 +350,7 @@ function TrendCard({
                             return (
                                 <div
                                     key={`${title}-${item.month}`}
-                                    className="grid gap-2 sm:grid-cols-[72px_minmax(0,1fr)_120px] sm:items-center sm:gap-3"
+                                    className="grid grid-cols-[56px_minmax(0,1fr)] items-center gap-x-3 gap-y-1 sm:grid-cols-[72px_minmax(0,1fr)_120px]"
                                 >
                                     <div className="text-xs font-medium text-neutral-500">
                                         {item.label}
@@ -361,7 +361,7 @@ function TrendCard({
                                             style={{ width }}
                                         />
                                     </div>
-                                    <div className="text-xs font-semibold text-neutral-950 sm:text-right">
+                                    <div className="col-start-2 text-right text-xs font-semibold text-neutral-950 sm:col-start-auto">
                                         {getLabel(item)}
                                     </div>
                                 </div>
