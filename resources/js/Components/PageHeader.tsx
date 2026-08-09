@@ -22,7 +22,7 @@ export default function PageHeader({
             )}
         >
             <div className="min-w-0">
-                <h1 className="truncate text-lg font-bold leading-6 text-neutral-950 sm:text-2xl sm:leading-8">
+                <h1 className="truncate text-xl font-bold leading-7 text-neutral-950 sm:text-2xl sm:leading-8">
                     {title}
                 </h1>
                 {description && (
