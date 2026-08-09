@@ -1,15 +1,16 @@
 import Button from '@/Components/Button';
 import { Card, CardContent, CardTitle } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
+import DataTable, { type DataTableColumn } from '@/Components/DataTable';
 import EmptyState from '@/Components/EmptyState';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
+import FormField from '@/Components/FormField';
 import PageHeader from '@/Components/PageHeader';
+import SelectInput from '@/Components/SelectInput';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler, ReactNode, useState } from 'react';
+import { type FormEventHandler, useState } from 'react';
 
 type Category = {
     id: number;
@@ -89,6 +90,46 @@ export default function OperationsIndex({
         router.get(route('operations.index'), {}, { replace: true });
     };
 
+    const expenseColumns: Array<DataTableColumn<Expense>> = [
+        {
+            key: 'transaction_date',
+            header: 'Tanggal',
+            cellClassName: 'whitespace-nowrap',
+            cell: (expense) => expense.transaction_date,
+        },
+        {
+            key: 'category',
+            header: 'Kategori',
+            cellClassName: 'whitespace-nowrap font-medium text-neutral-950',
+            cell: (expense) => expense.category ?? '-',
+        },
+        {
+            key: 'description',
+            header: 'Keterangan',
+            cellClassName: 'text-neutral-600',
+            cell: (expense) => expense.description ?? '-',
+        },
+        {
+            key: 'proof',
+            header: 'Bukti',
+            cell: (expense) => (
+                <a
+                    className="font-medium text-neutral-950 underline"
+                    href={expense.proof_download_url}
+                >
+                    {expense.proof_original_name ?? 'Unduh bukti'}
+                </a>
+            ),
+        },
+        {
+            key: 'amount',
+            header: 'Nominal',
+            align: 'right',
+            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
+            cell: (expense) => <CurrencyDisplay value={expense.amount} />,
+        },
+    ];
+
     return (
         <AuthenticatedLayout
             header={
@@ -145,7 +186,10 @@ export default function OperationsIndex({
                                         </p>
                                     </div>
 
-                                    <Field label="Tanggal *" error={form.errors.transaction_date}>
+                                    <FormField
+                                        label="Tanggal *"
+                                        error={form.errors.transaction_date}
+                                    >
                                         <TextInput
                                             type="date"
                                             className="block w-full"
@@ -155,11 +199,13 @@ export default function OperationsIndex({
                                             }
                                             required
                                         />
-                                    </Field>
+                                    </FormField>
 
-                                    <Field label="Kategori *" error={form.errors.category_id}>
-                                        <select
-                                            className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                                    <FormField
+                                        label="Kategori *"
+                                        error={form.errors.category_id}
+                                    >
+                                        <SelectInput
                                             value={form.data.category_id}
                                             onChange={(event) =>
                                                 form.setData('category_id', event.target.value)
@@ -172,10 +218,13 @@ export default function OperationsIndex({
                                                     {category.name}
                                                 </option>
                                             ))}
-                                        </select>
-                                    </Field>
+                                        </SelectInput>
+                                    </FormField>
 
-                                    <Field label="Nominal *" error={form.errors.amount}>
+                                    <FormField
+                                        label="Nominal *"
+                                        error={form.errors.amount}
+                                    >
                                         <TextInput
                                             type="number"
                                             min="0"
@@ -186,29 +235,35 @@ export default function OperationsIndex({
                                             }
                                             required
                                         />
-                                    </Field>
+                                    </FormField>
 
-                                    <Field label="Bukti *" error={form.errors.proof}>
+                                    <FormField
+                                        label="Bukti *"
+                                        error={form.errors.proof}
+                                    >
                                         <input
                                             type="file"
                                             accept=".jpg,.jpeg,.png,.webp,.pdf"
-                                            className="block w-full rounded-md border border-neutral-300 bg-white text-sm file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
+                                            className="block w-full rounded-md border border-neutral-300 bg-surface text-sm text-neutral-700 file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500"
                                             onChange={(event) =>
                                                 form.setData('proof', event.target.files?.[0] ?? null)
                                             }
                                             required
                                         />
-                                    </Field>
+                                    </FormField>
 
-                                    <Field label="Keterangan" error={form.errors.description}>
+                                    <FormField
+                                        label="Keterangan"
+                                        error={form.errors.description}
+                                    >
                                         <textarea
-                                            className="block min-h-24 w-full rounded-md border-neutral-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                                            className="block min-h-24 w-full rounded-md border-neutral-300 text-sm shadow-sm focus:border-brand-yellow-500 focus:ring-brand-yellow-500"
                                             value={form.data.description}
                                             onChange={(event) =>
                                                 form.setData('description', event.target.value)
                                             }
                                         />
-                                    </Field>
+                                    </FormField>
 
                                     <Button
                                         type="submit"
@@ -239,8 +294,7 @@ export default function OperationsIndex({
                                         setFilterData({ ...filterData, date_to: event.target.value })
                                     }
                                 />
-                                <select
-                                    className="rounded-md border-neutral-300 text-sm shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                                <SelectInput
                                     value={filterData.category_id}
                                     onChange={(event) =>
                                         setFilterData({ ...filterData, category_id: event.target.value })
@@ -252,7 +306,7 @@ export default function OperationsIndex({
                                             {category.name}
                                         </option>
                                     ))}
-                                </select>
+                                </SelectInput>
                                 <Button type="submit" variant="secondary">
                                     Filter
                                 </Button>
@@ -272,42 +326,11 @@ export default function OperationsIndex({
                                         />
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="min-w-full divide-y divide-neutral-200">
-                                            <thead className="bg-neutral-50">
-                                                <tr>
-                                                    {['Tanggal', 'Kategori', 'Keterangan', 'Bukti', 'Nominal'].map((heading) => (
-                                                        <th key={heading} className="px-4 py-3 text-left text-xs font-semibold uppercase text-neutral-500">
-                                                            {heading}
-                                                        </th>
-                                                    ))}
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-neutral-200 bg-white">
-                                                {expenses.data.map((expense) => (
-                                                    <tr key={expense.id}>
-                                                        <td className="whitespace-nowrap px-4 py-3 text-sm text-neutral-700">
-                                                            {expense.transaction_date}
-                                                        </td>
-                                                        <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-neutral-950">
-                                                            {expense.category}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-sm text-neutral-600">
-                                                            {expense.description ?? '-'}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-sm">
-                                                            <a className="font-medium text-neutral-950 underline" href={expense.proof_download_url}>
-                                                                {expense.proof_original_name ?? 'Unduh bukti'}
-                                                            </a>
-                                                        </td>
-                                                        <td className="whitespace-nowrap px-4 py-3 text-right text-sm font-semibold text-neutral-950">
-                                                            <CurrencyDisplay value={expense.amount} />
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    <DataTable
+                                        rows={expenses.data}
+                                        columns={expenseColumns}
+                                        getRowKey={(expense) => expense.id}
+                                    />
                                 )}
                             </CardContent>
                         </Card>
@@ -315,23 +338,5 @@ export default function OperationsIndex({
                 </div>
             </div>
         </AuthenticatedLayout>
-    );
-}
-
-function Field({
-    label,
-    error,
-    children,
-}: {
-    label: string;
-    error?: string;
-    children: ReactNode;
-}) {
-    return (
-        <div>
-            <InputLabel value={label} />
-            <div className="mt-1">{children}</div>
-            <InputError className="mt-2" message={error} />
-        </div>
     );
 }
