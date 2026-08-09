@@ -1,12 +1,11 @@
 import Button from '@/Components/Button';
 import { Card } from '@/Components/Card';
-import CurrencyDisplay from '@/Components/CurrencyDisplay';
 import EmptyState from '@/Components/EmptyState';
 import FormField from '@/Components/FormField';
 import PageHeader from '@/Components/PageHeader';
 import SelectInput from '@/Components/SelectInput';
-import StatusBadge from '@/Components/StatusBadge';
 import TextInput from '@/Components/TextInput';
+import VehicleCard from '@/Components/VehicleCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -197,67 +196,11 @@ export default function VehicleIndex({
                 ) : (
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {vehicles.data.map((vehicle) => (
-                            <Card
+                            <VehicleCard
                                 key={vehicle.id}
-                                className="overflow-hidden transition duration-150 hover:border-neutral-300"
-                            >
-                                {vehicle.cover_photo_url ? (
-                                    <img
-                                        src={vehicle.cover_photo_url}
-                                        alt={`${vehicle.brand} ${vehicle.type} ${vehicle.plate_number}`}
-                                        className="aspect-[4/3] w-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="flex aspect-[4/3] items-center justify-center bg-neutral-100 text-sm font-medium text-neutral-500">
-                                        Foto kendaraan belum tersedia
-                                    </div>
-                                )}
-                                <div className="space-y-4 p-5">
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="min-w-0">
-                                            <h2 className="truncate text-lg font-semibold text-neutral-950">
-                                                {vehicle.brand}{' '}
-                                                {vehicle.type}
-                                            </h2>
-                                            <p className="text-sm text-neutral-500">
-                                                {vehicle.plate_number} /{' '}
-                                                {vehicle.year} / {vehicle.color}
-                                            </p>
-                                        </div>
-                                        <StatusBadge
-                                            type="vehicle"
-                                            value={vehicle.status}
-                                        />
-                                    </div>
-
-                                    <div className="flex items-center justify-between gap-4">
-                                        <StatusBadge
-                                            type="capital"
-                                            value={vehicle.capital_type}
-                                        />
-                                        <CurrencyDisplay
-                                            value={vehicle.asking_price}
-                                            className="text-lg font-bold text-neutral-950"
-                                        />
-                                    </div>
-
-                                    <div className="flex justify-end">
-                                        <Link
-                                            href={route(
-                                                'vehicles.show',
-                                                vehicle.id,
-                                            )}
-                                        >
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                            >
-                                                Lihat Detail
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </Card>
+                                vehicle={vehicle}
+                                isAdmin={isAdmin}
+                            />
                         ))}
                     </div>
                 )}
@@ -270,8 +213,8 @@ export default function VehicleIndex({
                                 href={link.url ?? '#'}
                                 className={
                                     link.active
-                                        ? 'inline-flex h-9 min-w-9 items-center justify-center rounded-md bg-neutral-950 px-3 text-sm font-medium text-white'
-                                        : 'inline-flex h-9 min-w-9 items-center justify-center rounded-md border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50'
+                                        ? 'inline-flex h-9 min-w-9 items-center justify-center rounded-md bg-brand-black px-3 text-sm font-medium text-white'
+                                        : 'inline-flex h-9 min-w-9 items-center justify-center rounded-md border border-neutral-200 bg-surface px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50'
                                 }
                                 preserveScroll
                                 dangerouslySetInnerHTML={{
