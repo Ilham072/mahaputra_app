@@ -1,13 +1,12 @@
 import Button from '@/Components/Button';
 import { Card, CardContent, CardTitle } from '@/Components/Card';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
+import FormField from '@/Components/FormField';
 import PageHeader from '@/Components/PageHeader';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { FormEventHandler, ReactNode } from 'react';
-import { CustomerFormModel } from './types';
+import type { FormEventHandler } from 'react';
+import type { CustomerFormModel } from './types';
 
 type CustomerFormProps = {
     customer: CustomerFormModel;
@@ -43,7 +42,7 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
                     <CardContent className="space-y-5">
                         <CardTitle>Data Customer</CardTitle>
                         <div className="grid gap-5 md:grid-cols-2">
-                            <Field label="Nama *" error={form.errors.name}>
+                            <FormField label="Nama *" error={form.errors.name}>
                                 <TextInput
                                     className="block w-full"
                                     value={form.data.name}
@@ -55,9 +54,9 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
                                     }
                                     required
                                 />
-                            </Field>
+                            </FormField>
 
-                            <Field
+                            <FormField
                                 label="WhatsApp *"
                                 error={form.errors.whatsapp}
                             >
@@ -72,9 +71,9 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
                                     }
                                     required
                                 />
-                            </Field>
+                            </FormField>
 
-                            <Field
+                            <FormField
                                 label="WhatsApp Alternatif"
                                 error={form.errors.alternative_whatsapp}
                             >
@@ -88,15 +87,15 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
                                         )
                                     }
                                 />
-                            </Field>
+                            </FormField>
 
                             <div className="md:col-span-2">
-                                <Field
+                                <FormField
                                     label="Alamat *"
                                     error={form.errors.address}
                                 >
                                     <textarea
-                                        className="block min-h-28 w-full rounded-md border-neutral-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                                        className="block min-h-28 w-full rounded-md border-neutral-300 text-sm shadow-sm focus:border-brand-yellow-500 focus:ring-brand-yellow-500"
                                         value={form.data.address}
                                         onChange={(event) =>
                                             form.setData(
@@ -106,7 +105,7 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
                                         }
                                         required
                                     />
-                                </Field>
+                                </FormField>
                             </div>
                         </div>
                     </CardContent>
@@ -128,23 +127,5 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
                 </div>
             </form>
         </AuthenticatedLayout>
-    );
-}
-
-function Field({
-    label,
-    error,
-    children,
-}: {
-    label: string;
-    error?: string;
-    children: ReactNode;
-}) {
-    return (
-        <div>
-            <InputLabel value={label} />
-            <div className="mt-1">{children}</div>
-            <InputError className="mt-2" message={error} />
-        </div>
     );
 }
