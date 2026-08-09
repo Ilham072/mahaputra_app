@@ -1,11 +1,13 @@
 import Button from '@/Components/Button';
 import { Card, CardContent } from '@/Components/Card';
+import DataTable, { type DataTableColumn } from '@/Components/DataTable';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
+import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import { FormEventHandler, useState } from 'react';
-import { CustomerSummary } from './types';
+import { type FormEventHandler, useState } from 'react';
+import type { CustomerSummary } from './types';
 
 type PaginationLink = {
     url: string | null;
@@ -43,6 +45,58 @@ export default function CustomerIndex({
         router.get(route('customers.index'), {}, { replace: true });
     };
 
+    const customerColumns: Array<DataTableColumn<CustomerSummary>> = [
+        {
+            key: 'name',
+            header: 'Nama',
+            cellClassName: 'font-medium text-neutral-950',
+            cell: (customer) => customer.name,
+        },
+        {
+            key: 'whatsapp',
+            header: 'WhatsApp',
+            cell: (customer) => (
+                <>
+                    {customer.whatsapp}
+                    {customer.alternative_whatsapp && (
+                        <div className="text-xs text-neutral-500">
+                            {customer.alternative_whatsapp}
+                        </div>
+                    )}
+                </>
+            ),
+        },
+        {
+            key: 'address',
+            header: 'Alamat',
+            cellClassName: 'max-w-xs truncate',
+            cell: (customer) => customer.address,
+        },
+        {
+            key: 'sales_count',
+            header: 'Transaksi',
+            cellClassName: 'font-semibold text-neutral-950',
+            cell: (customer) => customer.sales_count,
+        },
+        {
+            key: 'last_sale_date',
+            header: 'Terakhir',
+            cell: (customer) => customer.last_sale_date ?? '-',
+        },
+        {
+            key: 'actions',
+            header: '',
+            align: 'right',
+            cell: (customer) => (
+                <Link href={route('customers.show', customer.id)}>
+                    <Button type="button" variant="outline" size="sm">
+                        Detail
+                    </Button>
+                </Link>
+            ),
+        },
+    ];
+
     return (
         <AuthenticatedLayout
             header={
@@ -61,8 +115,7 @@ export default function CustomerIndex({
                             onSubmit={submit}
                             className="grid gap-3 md:grid-cols-[minmax(180px,1fr)_auto_auto]"
                         >
-                            <input
-                                className="rounded-md border-neutral-300 text-sm shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                            <TextInput
                                 placeholder="Cari nama atau WhatsApp"
                                 value={filterData.search}
                                 onChange={(event) =>
@@ -95,74 +148,11 @@ export default function CustomerIndex({
                                 />
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-neutral-200">
-                                    <thead className="bg-neutral-50">
-                                        <tr>
-                                            {[
-                                                'Nama',
-                                                'WhatsApp',
-                                                'Alamat',
-                                                'Transaksi',
-                                                'Terakhir',
-                                                '',
-                                            ].map((heading) => (
-                                                <th
-                                                    key={heading}
-                                                    className="px-4 py-3 text-left text-xs font-semibold uppercase text-neutral-500"
-                                                >
-                                                    {heading}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-neutral-200 bg-white">
-                                        {customers.data.map((customer) => (
-                                            <tr key={customer.id}>
-                                                <td className="px-4 py-3 text-sm font-medium text-neutral-950">
-                                                    {customer.name}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-neutral-700">
-                                                    {customer.whatsapp}
-                                                    {customer.alternative_whatsapp && (
-                                                        <div className="text-xs text-neutral-500">
-                                                            {
-                                                                customer.alternative_whatsapp
-                                                            }
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="max-w-xs truncate px-4 py-3 text-sm text-neutral-700">
-                                                    {customer.address}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm font-semibold text-neutral-950">
-                                                    {customer.sales_count}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-neutral-700">
-                                                    {customer.last_sale_date ??
-                                                        '-'}
-                                                </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <Link
-                                                        href={route(
-                                                            'customers.show',
-                                                            customer.id,
-                                                        )}
-                                                    >
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="sm"
-                                                        >
-                                                            Detail
-                                                        </Button>
-                                                    </Link>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <DataTable
+                                rows={customers.data}
+                                columns={customerColumns}
+                                getRowKey={(customer) => customer.id}
+                            />
                         )}
                     </CardContent>
                 </Card>
@@ -175,8 +165,8 @@ export default function CustomerIndex({
                                 href={link.url ?? '#'}
                                 className={
                                     link.active
-                                        ? 'inline-flex h-9 min-w-9 items-center justify-center rounded-md bg-neutral-950 px-3 text-sm font-medium text-white'
-                                        : 'inline-flex h-9 min-w-9 items-center justify-center rounded-md border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50'
+                                        ? 'inline-flex h-9 min-w-9 items-center justify-center rounded-md bg-neutral-950 px-3 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2'
+                                        : 'inline-flex h-9 min-w-9 items-center justify-center rounded-md border border-neutral-200 bg-surface px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2'
                                 }
                                 preserveScroll
                                 dangerouslySetInnerHTML={{
