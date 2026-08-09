@@ -1,15 +1,16 @@
 import Badge from '@/Components/Badge';
 import Button from '@/Components/Button';
 import { Card, CardContent } from '@/Components/Card';
+import Checkbox from '@/Components/Checkbox';
+import DataTable, { type DataTableColumn } from '@/Components/DataTable';
 import EmptyState from '@/Components/EmptyState';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
+import FormField from '@/Components/FormField';
 import PageHeader from '@/Components/PageHeader';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler, useState } from 'react';
+import { type FormEventHandler, useState } from 'react';
 
 type MasterResource = {
     key: string;
@@ -87,6 +88,53 @@ export default function MasterDataIndex({
         });
     };
 
+    const itemColumns: Array<DataTableColumn<MasterItem>> = [
+        {
+            key: 'name',
+            header: 'Nama',
+            cellClassName: 'whitespace-nowrap font-medium text-neutral-950',
+            cell: (item) => item.name,
+        },
+        {
+            key: 'status',
+            header: 'Status',
+            cellClassName: 'whitespace-nowrap',
+            cell: (item) => (
+                <Badge variant={item.is_active ? 'success' : 'neutral'}>
+                    {item.is_active ? 'Aktif' : 'Nonaktif'}
+                </Badge>
+            ),
+        },
+        {
+            key: 'actions',
+            header: 'Aksi',
+            align: 'right',
+            cellClassName: 'whitespace-nowrap',
+            cell: (item) => (
+                <div className="flex justify-end gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => startEditing(item)}
+                    >
+                        Edit
+                    </Button>
+                    {item.is_active && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deactivate(item)}
+                        >
+                            Nonaktifkan
+                        </Button>
+                    )}
+                </div>
+            ),
+        },
+    ];
+
     return (
         <AuthenticatedLayout
             header={<PageHeader title={title} description={description} />}
@@ -107,8 +155,8 @@ export default function MasterDataIndex({
                             href={item.href}
                             className={
                                 item.key === resource
-                                    ? 'inline-flex h-10 shrink-0 items-center rounded-md bg-neutral-950 px-4 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-yellow-500'
-                                    : 'inline-flex h-10 shrink-0 items-center rounded-md border border-neutral-200 bg-white px-4 text-sm font-medium text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-yellow-500'
+                                    ? 'inline-flex h-10 shrink-0 items-center rounded-md bg-neutral-950 px-4 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2'
+                                    : 'inline-flex h-10 shrink-0 items-center rounded-md border border-neutral-200 bg-surface px-4 text-sm font-medium text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2'
                             }
                         >
                             {item.label}
@@ -132,11 +180,14 @@ export default function MasterDataIndex({
                                     </p>
                                 </div>
 
-                                <div>
-                                    <InputLabel htmlFor="name" value="Nama *" />
+                                <FormField
+                                    htmlFor="name"
+                                    label="Nama *"
+                                    error={form.errors.name}
+                                >
                                     <TextInput
                                         id="name"
-                                        className="mt-1 block w-full"
+                                        className="block w-full"
                                         value={form.data.name}
                                         onChange={(event) =>
                                             form.setData(
@@ -146,17 +197,11 @@ export default function MasterDataIndex({
                                         }
                                         required
                                     />
-                                    <InputError
-                                        className="mt-2"
-                                        message={form.errors.name}
-                                    />
-                                </div>
+                                </FormField>
 
                                 {editingItem && (
                                     <label className="flex items-center gap-3 rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2">
-                                        <input
-                                            type="checkbox"
-                                            className="rounded border-neutral-300 text-yellow-500 focus:ring-yellow-500"
+                                        <Checkbox
                                             checked={form.data.is_active}
                                             onChange={(event) =>
                                                 form.setData(
@@ -206,75 +251,11 @@ export default function MasterDataIndex({
                                     />
                                 </div>
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-neutral-200">
-                                        <thead className="bg-neutral-50">
-                                            <tr>
-                                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase text-neutral-500">
-                                                    Nama
-                                                </th>
-                                                <th className="px-5 py-3 text-left text-xs font-semibold uppercase text-neutral-500">
-                                                    Status
-                                                </th>
-                                                <th className="px-5 py-3 text-right text-xs font-semibold uppercase text-neutral-500">
-                                                    Aksi
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-neutral-200 bg-white">
-                                            {items.map((item) => (
-                                                <tr key={item.id}>
-                                                    <td className="whitespace-nowrap px-5 py-4 text-sm font-medium text-neutral-950">
-                                                        {item.name}
-                                                    </td>
-                                                    <td className="whitespace-nowrap px-5 py-4">
-                                                        <Badge
-                                                            variant={
-                                                                item.is_active
-                                                                    ? 'success'
-                                                                    : 'neutral'
-                                                            }
-                                                        >
-                                                            {item.is_active
-                                                                ? 'Aktif'
-                                                                : 'Nonaktif'}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="whitespace-nowrap px-5 py-4 text-right">
-                                                        <div className="flex justify-end gap-2">
-                                                            <Button
-                                                                type="button"
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    startEditing(
-                                                                        item,
-                                                                    )
-                                                                }
-                                                            >
-                                                                Edit
-                                                            </Button>
-                                                            {item.is_active && (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() =>
-                                                                        deactivate(
-                                                                            item,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    Nonaktifkan
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <DataTable
+                                    rows={items}
+                                    columns={itemColumns}
+                                    getRowKey={(item) => item.id}
+                                />
                             )}
                         </CardContent>
                     </Card>
