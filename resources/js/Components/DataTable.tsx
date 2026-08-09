@@ -39,7 +39,7 @@ export default function DataTable<T>({
                             <th
                                 key={column.key}
                                 className={[
-                                    'px-4 py-3 text-xs font-semibold uppercase text-neutral-500',
+                                    'px-3 py-3 text-xs font-semibold uppercase text-neutral-500 sm:px-4',
                                     alignClasses[column.align ?? 'left'],
                                     column.headerClassName ?? '',
                                 ].join(' ')}
@@ -56,7 +56,7 @@ export default function DataTable<T>({
                                 <td
                                     key={column.key}
                                     className={[
-                                        'px-4 py-3 text-sm text-neutral-700',
+                                        'px-3 py-3 text-sm text-neutral-700 sm:px-4',
                                         alignClasses[column.align ?? 'left'],
                                         column.cellClassName ?? '',
                                     ].join(' ')}

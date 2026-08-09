@@ -175,7 +175,7 @@ export default function Dashboard({
         >
             <Head title="Dashboard" />
 
-            <div className="space-y-6">
+            <div className="space-y-5 lg:space-y-6">
                 <Card className="p-4 sm:p-5">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                         <div>
@@ -221,7 +221,7 @@ export default function Dashboard({
                     ))}
                 </section>
 
-                <div className="grid gap-6 xl:grid-cols-2">
+                <div className="grid gap-5 xl:grid-cols-2">
                     <TrendCard
                         title="Tren Penjualan"
                         items={salesTrend}
@@ -242,7 +242,7 @@ export default function Dashboard({
                     />
                 </div>
 
-                <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+                <div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
                     <Card>
                         <CardContent className="p-0">
                             <div className="flex items-center justify-between gap-4 border-b border-neutral-200 p-5">
@@ -262,7 +262,7 @@ export default function Dashboard({
                                     rows={recentSales}
                                     columns={recentSaleColumns}
                                     getRowKey={(sale) => sale.id}
-                                    minWidth="min-w-[620px] sm:min-w-[680px]"
+                                    minWidth="min-w-[560px] sm:min-w-[680px]"
                                 />
                             )}
                         </CardContent>
@@ -342,7 +342,7 @@ function TrendCard({
             <CardContent>
                 <CardTitle>{title}</CardTitle>
                 {hasData ? (
-                    <div className="mt-5 space-y-4">
+                    <div className="mt-5 space-y-3.5">
                         {items.map((item) => {
                             const value = getValue(item);
                             const width = `${Math.max((value / maxValue) * 100, value > 0 ? 4 : 0)}%`;

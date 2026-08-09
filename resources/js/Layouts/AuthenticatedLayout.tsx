@@ -319,7 +319,7 @@ export default function Authenticated({
             <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-brand-black px-4 py-5 lg:flex">
                 <Brand />
 
-                <div className="mt-8 flex-1 overflow-y-auto">
+                <div className="mt-8 flex-1 overflow-y-auto pr-1 [scrollbar-width:thin]">
                     <NavItems isAdmin={isAdmin} currentUrl={url} />
                 </div>
 
@@ -364,7 +364,7 @@ export default function Authenticated({
                             </button>
                         </div>
 
-                        <div className="mt-8 flex-1 overflow-y-auto">
+                        <div className="mt-8 flex-1 overflow-y-auto pr-1 [scrollbar-width:thin]">
                             <NavItems
                                 isAdmin={isAdmin}
                                 currentUrl={url}
