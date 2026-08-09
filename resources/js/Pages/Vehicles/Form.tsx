@@ -1,14 +1,14 @@
 import Button from '@/Components/Button';
 import { Card, CardContent, CardTitle } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
+import FormField from '@/Components/FormField';
 import PageHeader from '@/Components/PageHeader';
+import SelectInput from '@/Components/SelectInput';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { FormEventHandler, ReactNode } from 'react';
-import { VehicleDetail, VehicleOptions } from './types';
+import type { FormEventHandler } from 'react';
+import type { VehicleDetail, VehicleOptions } from './types';
 
 type VehicleFormProps = {
     mode: 'create' | 'edit';
@@ -120,7 +120,10 @@ export default function VehicleForm({
                     <CardContent className="space-y-5">
                         <CardTitle>Informasi Kendaraan</CardTitle>
                         <div className="grid gap-5 md:grid-cols-2">
-                            <Field label="Tanggal Pembelian" error={form.errors.purchase_date}>
+                            <FormField
+                                label="Tanggal Pembelian"
+                                error={form.errors.purchase_date}
+                            >
                                 <TextInput
                                     type="date"
                                     className="block w-full"
@@ -133,11 +136,10 @@ export default function VehicleForm({
                                     }
                                     required
                                 />
-                            </Field>
+                            </FormField>
 
-                            <Field label="Merk" error={form.errors.brand_id}>
-                                <select
-                                    className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                            <FormField label="Merk" error={form.errors.brand_id}>
+                                <SelectInput
                                     value={form.data.brand_id}
                                     onChange={(event) =>
                                         form.setData(
@@ -153,10 +155,10 @@ export default function VehicleForm({
                                             {brand.name}
                                         </option>
                                     ))}
-                                </select>
-                            </Field>
+                                </SelectInput>
+                            </FormField>
 
-                            <Field label="Tipe" error={form.errors.type}>
+                            <FormField label="Tipe" error={form.errors.type}>
                                 <TextInput
                                     className="block w-full"
                                     value={form.data.type}
@@ -165,9 +167,12 @@ export default function VehicleForm({
                                     }
                                     required
                                 />
-                            </Field>
+                            </FormField>
 
-                            <Field label="No Polisi" error={form.errors.plate_number}>
+                            <FormField
+                                label="No Polisi"
+                                error={form.errors.plate_number}
+                            >
                                 <TextInput
                                     className="block w-full uppercase"
                                     value={form.data.plate_number}
@@ -179,9 +184,9 @@ export default function VehicleForm({
                                     }
                                     required
                                 />
-                            </Field>
+                            </FormField>
 
-                            <Field label="Tahun" error={form.errors.year}>
+                            <FormField label="Tahun" error={form.errors.year}>
                                 <TextInput
                                     type="number"
                                     className="block w-full"
@@ -191,9 +196,9 @@ export default function VehicleForm({
                                     }
                                     required
                                 />
-                            </Field>
+                            </FormField>
 
-                            <Field label="Warna" error={form.errors.color}>
+                            <FormField label="Warna" error={form.errors.color}>
                                 <TextInput
                                     className="block w-full"
                                     value={form.data.color}
@@ -202,7 +207,7 @@ export default function VehicleForm({
                                     }
                                     required
                                 />
-                            </Field>
+                            </FormField>
                         </div>
                     </CardContent>
                 </Card>
@@ -211,9 +216,11 @@ export default function VehicleForm({
                     <CardContent className="space-y-5">
                         <CardTitle>Dokumen dan Pajak</CardTitle>
                         <div className="grid gap-5 md:grid-cols-2">
-                            <Field label="Status Pajak" error={form.errors.tax_status}>
-                                <select
-                                    className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                            <FormField
+                                label="Status Pajak"
+                                error={form.errors.tax_status}
+                            >
+                                <SelectInput
                                     value={form.data.tax_status}
                                     onChange={(event) =>
                                         form.setData(
@@ -231,10 +238,13 @@ export default function VehicleForm({
                                             {status.label}
                                         </option>
                                     ))}
-                                </select>
-                            </Field>
+                                </SelectInput>
+                            </FormField>
 
-                            <Field label="Nominal Pajak" error={form.errors.tax_amount}>
+                            <FormField
+                                label="Nominal Pajak"
+                                error={form.errors.tax_amount}
+                            >
                                 <TextInput
                                     type="number"
                                     min="0"
@@ -247,16 +257,20 @@ export default function VehicleForm({
                                         )
                                     }
                                 />
-                            </Field>
+                            </FormField>
                         </div>
 
                         {mode === 'create' && (
-                            <Field label="Foto Kendaraan" error={form.errors.photos}>
+                            <FormField
+                                label="Foto Kendaraan"
+                                error={form.errors.photos}
+                                helpText="Maksimal 5 foto, 5 MB per foto. Foto pertama menjadi cover."
+                            >
                                 <input
                                     type="file"
                                     accept=".jpg,.jpeg,.png,.webp"
                                     multiple
-                                    className="block w-full rounded-md border border-neutral-300 bg-white text-sm text-neutral-700 file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    className="block w-full rounded-md border border-neutral-300 bg-surface text-sm text-neutral-700 file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500"
                                     onChange={(event) =>
                                         form.setData(
                                             'photos',
@@ -266,11 +280,7 @@ export default function VehicleForm({
                                         )
                                     }
                                 />
-                                <p className="mt-2 text-xs text-neutral-500">
-                                    Maksimal 5 foto, 5 MB per foto. Foto pertama
-                                    menjadi cover.
-                                </p>
-                            </Field>
+                            </FormField>
                         )}
                     </CardContent>
                 </Card>
@@ -279,9 +289,11 @@ export default function VehicleForm({
                     <CardContent className="space-y-5">
                         <CardTitle>Sumber Modal</CardTitle>
                         <div className="grid gap-5 md:grid-cols-2">
-                            <Field label="Jenis Modal" error={form.errors.capital_type}>
-                                <select
-                                    className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                            <FormField
+                                label="Jenis Modal"
+                                error={form.errors.capital_type}
+                            >
+                                <SelectInput
                                     value={form.data.capital_type}
                                     onChange={(event) =>
                                         form.setData(
@@ -296,10 +308,10 @@ export default function VehicleForm({
                                             {type.label}
                                         </option>
                                     ))}
-                                </select>
-                            </Field>
+                                </SelectInput>
+                            </FormField>
 
-                            <Field
+                            <FormField
                                 label="Modal Showroom"
                                 error={form.errors.showroom_capital}
                             >
@@ -316,11 +328,11 @@ export default function VehicleForm({
                                     }
                                     required
                                 />
-                            </Field>
+                            </FormField>
 
                             {form.data.capital_type === 'UMUM' && (
                                 <>
-                                    <Field
+                                    <FormField
                                         label="Nama Kolaborator"
                                         error={form.errors.collaborator_name}
                                     >
@@ -335,9 +347,9 @@ export default function VehicleForm({
                                             }
                                             required
                                         />
-                                    </Field>
+                                    </FormField>
 
-                                    <Field
+                                    <FormField
                                         label="Modal Kolaborator"
                                         error={form.errors.collaborator_capital}
                                     >
@@ -354,7 +366,7 @@ export default function VehicleForm({
                                             }
                                             required
                                         />
-                                    </Field>
+                                    </FormField>
                                 </>
                             )}
                         </div>
@@ -375,7 +387,7 @@ export default function VehicleForm({
                     <CardContent className="space-y-5">
                         <CardTitle>Harga dan Status</CardTitle>
                         <div className="grid gap-5 md:grid-cols-2">
-                            <Field
+                            <FormField
                                 label="Harga Penawaran"
                                 error={form.errors.asking_price}
                             >
@@ -392,11 +404,10 @@ export default function VehicleForm({
                                     }
                                     required
                                 />
-                            </Field>
+                            </FormField>
 
-                            <Field label="Status" error={form.errors.status}>
-                                <select
-                                    className="block w-full rounded-md border-neutral-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                            <FormField label="Status" error={form.errors.status}>
+                                <SelectInput
                                     value={form.data.status}
                                     onChange={(event) =>
                                         form.setData(
@@ -414,8 +425,8 @@ export default function VehicleForm({
                                             {status.label}
                                         </option>
                                     ))}
-                                </select>
-                            </Field>
+                                </SelectInput>
+                            </FormField>
                         </div>
                     </CardContent>
                 </Card>
@@ -442,23 +453,5 @@ export default function VehicleForm({
                 </div>
             </form>
         </AuthenticatedLayout>
-    );
-}
-
-function Field({
-    label,
-    error,
-    children,
-}: {
-    label: string;
-    error?: string;
-    children: ReactNode;
-}) {
-    return (
-        <div>
-            <InputLabel value={label} />
-            <div className="mt-1">{children}</div>
-            <InputError className="mt-2" message={error} />
-        </div>
     );
 }
