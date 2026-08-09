@@ -1,10 +1,14 @@
 import Button from '@/Components/Button';
 import { Card, CardContent, CardTitle } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
+import DataTable from '@/Components/DataTable';
+import type { DataTableColumn } from '@/Components/DataTable';
 import EmptyState from '@/Components/EmptyState';
+import FormField from '@/Components/FormField';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PageHeader from '@/Components/PageHeader';
+import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -12,13 +16,14 @@ import { PageProps } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { FormEventHandler, lazy, ReactNode, Suspense, useState } from 'react';
-import {
+import type {
+    VehicleCost,
     VehicleCostCategoryOption,
     VehicleDetail,
     VehicleDocument,
     VehiclePhoto,
 } from './types';
-import { VehiclePdfPayload } from './VehiclePdfDocument';
+import type { VehiclePdfPayload } from './VehiclePdfDocument';
 
 const VehiclePdfDownloadAction = lazy(
     () => import('./VehiclePdfDownloadAction'),
@@ -56,6 +61,34 @@ export default function VehicleShow({
                 costForm.reset('amount', 'description'),
         });
     };
+
+    const costColumns: Array<DataTableColumn<VehicleCost>> = [
+        {
+            key: 'cost_date',
+            header: 'Tanggal',
+            cellClassName: 'whitespace-nowrap',
+            cell: (cost) => cost.cost_date,
+        },
+        {
+            key: 'category',
+            header: 'Kategori',
+            cellClassName: 'whitespace-nowrap font-medium text-neutral-900',
+            cell: (cost) => cost.category_label,
+        },
+        {
+            key: 'description',
+            header: 'Keterangan',
+            cellClassName: 'text-neutral-600',
+            cell: (cost) => cost.description ?? '-',
+        },
+        {
+            key: 'amount',
+            header: 'Nominal',
+            align: 'right',
+            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
+            cell: (cost) => <CurrencyDisplay value={cost.amount} />,
+        },
+    ];
 
     const loadPdfData = async () => {
         setPdfLoading(true);
@@ -266,15 +299,14 @@ export default function VehicleShow({
                                         </p>
                                     </div>
 
-                                    <div>
-                                        <InputLabel
-                                            htmlFor="cost_date"
-                                            value="Tanggal Biaya *"
-                                        />
+                                    <FormField
+                                        label="Tanggal Biaya *"
+                                        htmlFor="cost_date"
+                                        error={costForm.errors.cost_date}
+                                    >
                                         <TextInput
                                             id="cost_date"
                                             type="date"
-                                            className="mt-1 block w-full"
                                             value={costForm.data.cost_date}
                                             onChange={(event) =>
                                                 costForm.setData(
@@ -284,22 +316,15 @@ export default function VehicleShow({
                                             }
                                             required
                                         />
-                                        <InputError
-                                            className="mt-2"
-                                            message={
-                                                costForm.errors.cost_date
-                                            }
-                                        />
-                                    </div>
+                                    </FormField>
 
-                                    <div>
-                                        <InputLabel
-                                            htmlFor="category"
-                                            value="Kategori *"
-                                        />
-                                        <select
+                                    <FormField
+                                        label="Kategori *"
+                                        htmlFor="category"
+                                        error={costForm.errors.category}
+                                    >
+                                        <SelectInput
                                             id="category"
-                                            className="mt-1 block w-full rounded-md border-neutral-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
                                             value={costForm.data.category}
                                             onChange={(event) =>
                                                 costForm.setData(
@@ -319,23 +344,18 @@ export default function VehicleShow({
                                                     </option>
                                                 ),
                                             )}
-                                        </select>
-                                        <InputError
-                                            className="mt-2"
-                                            message={costForm.errors.category}
-                                        />
-                                    </div>
+                                        </SelectInput>
+                                    </FormField>
 
-                                    <div>
-                                        <InputLabel
-                                            htmlFor="amount"
-                                            value="Nominal *"
-                                        />
+                                    <FormField
+                                        label="Nominal *"
+                                        htmlFor="amount"
+                                        error={costForm.errors.amount}
+                                    >
                                         <TextInput
                                             id="amount"
                                             type="number"
                                             min="0"
-                                            className="mt-1 block w-full"
                                             value={costForm.data.amount}
                                             onChange={(event) =>
                                                 costForm.setData(
@@ -345,20 +365,16 @@ export default function VehicleShow({
                                             }
                                             required
                                         />
-                                        <InputError
-                                            className="mt-2"
-                                            message={costForm.errors.amount}
-                                        />
-                                    </div>
+                                    </FormField>
 
-                                    <div>
-                                        <InputLabel
-                                            htmlFor="description"
-                                            value="Keterangan"
-                                        />
+                                    <FormField
+                                        label="Keterangan"
+                                        htmlFor="description"
+                                        error={costForm.errors.description}
+                                    >
                                         <textarea
                                             id="description"
-                                            className="mt-1 block min-h-24 w-full rounded-md border-neutral-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                                            className="block min-h-24 w-full rounded-md border-neutral-300 shadow-sm focus:border-brand-yellow-500 focus:ring-brand-yellow-500"
                                             value={costForm.data.description}
                                             onChange={(event) =>
                                                 costForm.setData(
@@ -367,13 +383,7 @@ export default function VehicleShow({
                                                 )
                                             }
                                         />
-                                        <InputError
-                                            className="mt-2"
-                                            message={
-                                                costForm.errors.description
-                                            }
-                                        />
-                                    </div>
+                                    </FormField>
 
                                     <Button
                                         type="submit"
@@ -425,47 +435,12 @@ export default function VehicleShow({
                                     description="Biaya dico, kelistrikan/kaki-kaki, dan biaya lainnya akan muncul di sini."
                                 />
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-neutral-200">
-                                        <thead className="bg-neutral-50">
-                                            <tr>
-                                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-neutral-500">
-                                                    Tanggal
-                                                </th>
-                                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-neutral-500">
-                                                    Kategori
-                                                </th>
-                                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-neutral-500">
-                                                    Keterangan
-                                                </th>
-                                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-neutral-500">
-                                                    Nominal
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-neutral-200 bg-white">
-                                            {vehicle.costs.map((cost) => (
-                                                <tr key={cost.id}>
-                                                    <td className="whitespace-nowrap px-4 py-3 text-sm text-neutral-700">
-                                                        {cost.cost_date}
-                                                    </td>
-                                                    <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-neutral-900">
-                                                        {cost.category_label}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-neutral-600">
-                                                        {cost.description ??
-                                                            '-'}
-                                                    </td>
-                                                    <td className="whitespace-nowrap px-4 py-3 text-right text-sm font-semibold text-neutral-950">
-                                                        <CurrencyDisplay
-                                                            value={cost.amount}
-                                                        />
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <DataTable
+                                    rows={vehicle.costs}
+                                    columns={costColumns}
+                                    getRowKey={(cost) => cost.id}
+                                    minWidth="min-w-[720px]"
+                                />
                             )}
                         </CardContent>
                     </Card>
@@ -538,7 +513,7 @@ function VehiclePdfExportButton({
 
 function pdfLinkClasses(extra = '') {
     return [
-        'inline-flex h-10 items-center justify-center rounded-md border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-900 transition duration-150 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2',
+        'inline-flex h-10 items-center justify-center rounded-md border border-neutral-300 bg-surface px-4 text-sm font-medium text-neutral-900 transition duration-150 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2',
         extra,
     ]
         .filter(Boolean)
@@ -616,7 +591,7 @@ function PhotoGallery({
                                 type="file"
                                 accept=".jpg,.jpeg,.png,.webp"
                                 multiple
-                                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white text-sm text-neutral-700 file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                className="mt-1 block w-full rounded-md border border-neutral-300 bg-surface text-sm text-neutral-700 file:mr-4 file:border-0 file:bg-brand-black file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-black-soft focus:outline-none focus:ring-2 focus:ring-brand-yellow-500"
                                 onChange={(event) =>
                                     form.setData(
                                         'photos',
@@ -662,7 +637,7 @@ function PhotoCard({
     const deleteForm = useForm({});
 
     return (
-        <div className="overflow-hidden rounded-md border border-neutral-200 bg-white">
+        <div className="overflow-hidden rounded-md border border-neutral-200 bg-surface">
             <img
                 src={photo.view_url}
                 alt={photo.original_name ?? 'Foto kendaraan'}
@@ -674,7 +649,7 @@ function PhotoCard({
                         {photo.original_name ?? 'Foto kendaraan'}
                     </p>
                     {photo.is_cover && (
-                        <span className="shrink-0 rounded-md border border-yellow-200 bg-yellow-50 px-2 py-0.5 text-xs font-medium text-yellow-800">
+                        <span className="shrink-0 rounded-md border border-brand-yellow-400/40 bg-brand-yellow-400/20 px-2 py-0.5 text-xs font-medium text-brand-black">
                             Cover
                         </span>
                     )}
@@ -825,7 +800,7 @@ function DocumentCard({
                         <label className="flex items-center gap-3 rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2">
                             <input
                                 type="checkbox"
-                                className="rounded border-neutral-300 text-yellow-500 focus:ring-yellow-500"
+                                className="rounded-sm border-neutral-300 text-brand-yellow-500 focus:ring-brand-yellow-500"
                                 checked={form.data.is_available}
                                 onChange={(event) =>
                                     form.setData(
@@ -848,7 +823,7 @@ function DocumentCard({
                                 id={`${document.document_type}-file`}
                                 type="file"
                                 accept=".jpg,.jpeg,.png,.webp,.pdf"
-                                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white text-sm text-neutral-700 file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                className="mt-1 block w-full rounded-md border border-neutral-300 bg-surface text-sm text-neutral-700 file:mr-4 file:border-0 file:bg-brand-black file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-black-soft focus:outline-none focus:ring-2 focus:ring-brand-yellow-500"
                                 onChange={(event) =>
                                     form.setData(
                                         'document',
@@ -869,7 +844,7 @@ function DocumentCard({
                             />
                             <textarea
                                 id={`${document.document_type}-note`}
-                                className="mt-1 block min-h-20 w-full rounded-md border-neutral-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500"
+                                className="mt-1 block min-h-20 w-full rounded-md border-neutral-300 shadow-sm focus:border-brand-yellow-500 focus:ring-brand-yellow-500"
                                 value={form.data.note}
                                 onChange={(event) =>
                                     form.setData('note', event.target.value)
