@@ -6,6 +6,7 @@ import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
 type NavItem = {
     label: string;
     href: string;
+    icon: string;
     adminOnly?: boolean;
     disabled?: boolean;
     shortLabel?: string;
@@ -19,39 +20,57 @@ type NavSection = {
 const navigation: NavSection[] = [
     {
         items: [
-            { label: 'Dashboard', href: '/dashboard', shortLabel: 'Dasbor' },
+            {
+                label: 'Dashboard',
+                href: '/dashboard',
+                icon: 'grid',
+                shortLabel: 'Dasbor',
+            },
         ],
     },
     {
-        label: 'Kendaraan',
+        label: 'Operasional',
         items: [
             {
-                label: 'Data Kendaraan',
+                label: 'Inventory Kendaraan',
                 href: '/vehicles',
+                icon: 'car',
                 shortLabel: 'Kendaraan',
             },
             {
                 label: 'Tambah Kendaraan',
                 href: '/vehicles/create',
+                icon: 'plus',
                 adminOnly: true,
             },
-        ],
-    },
-    {
-        label: 'Penjualan',
-        items: [
-            { label: 'Rekap Penjualan', href: '/sales', shortLabel: 'Jual' },
-            { label: 'Customer', href: '/customers' },
-        ],
-    },
-    {
-        items: [
             {
-                label: 'Operasional',
+                label: 'Transaksi Penjualan',
+                href: '/sales',
+                icon: 'receipt',
+                shortLabel: 'Jual',
+            },
+            {
+                label: 'Customer',
+                href: '/customers',
+                icon: 'users',
+            },
+            {
+                label: 'Pengeluaran',
                 href: '/operations',
+                icon: 'wallet',
                 shortLabel: 'Operasi',
             },
-            { label: 'Laporan', href: '/reports', shortLabel: 'Laporan' },
+        ],
+    },
+    {
+        label: 'Laporan',
+        items: [
+            {
+                label: 'Laporan',
+                href: '/reports',
+                icon: 'file',
+                shortLabel: 'Laporan',
+            },
         ],
     },
     {
@@ -60,26 +79,31 @@ const navigation: NavSection[] = [
             {
                 label: 'Karyawan',
                 href: '/master/employees',
+                icon: 'user',
                 adminOnly: true,
             },
             {
                 label: 'Area',
                 href: '/master/areas',
+                icon: 'pin',
                 adminOnly: true,
             },
             {
                 label: 'Merk Kendaraan',
                 href: '/master/vehicle-brands',
+                icon: 'tag',
                 adminOnly: true,
             },
             {
                 label: 'Pembiayaan',
                 href: '/master/financing-providers',
+                icon: 'bank',
                 adminOnly: true,
             },
             {
                 label: 'Kategori Operasional',
                 href: '/master/expense-categories',
+                icon: 'folder',
                 adminOnly: true,
             },
         ],
@@ -119,15 +143,120 @@ function Brand() {
                 M
             </span>
             <span className="min-w-0">
-                <span className="block text-base font-semibold leading-5 text-white">
+                <span className="block text-sm font-semibold leading-5 text-white">
                     Mahaputra
                 </span>
-                <span className="block text-xs leading-4 text-neutral-300">
-                    Group
+                <span className="block text-[11px] font-semibold uppercase leading-4 text-neutral-400">
+                    Motor Backoffice
                 </span>
             </span>
         </Link>
     );
+}
+
+function NavIcon({ name }: { name: string }) {
+    const common = {
+        className: 'h-4 w-4',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 2,
+        strokeLinecap: 'round' as const,
+        strokeLinejoin: 'round' as const,
+        viewBox: '0 0 24 24',
+        'aria-hidden': true,
+    };
+
+    const paths: Record<string, ReactNode> = {
+        grid: (
+            <>
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+            </>
+        ),
+        car: (
+            <>
+                <path d="M7 17h10" />
+                <path d="M5 17h14l-1.5-6h-11L5 17Z" />
+                <circle cx="7.5" cy="17.5" r="1.5" />
+                <circle cx="16.5" cy="17.5" r="1.5" />
+            </>
+        ),
+        plus: (
+            <>
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+            </>
+        ),
+        receipt: (
+            <>
+                <path d="M6 3h12v18l-2-1-2 1-2-1-2 1-2-1-2 1V3Z" />
+                <path d="M9 8h6" />
+                <path d="M9 12h6" />
+                <path d="M9 16h4" />
+            </>
+        ),
+        users: (
+            <>
+                <circle cx="9" cy="8" r="3" />
+                <path d="M3 20a6 6 0 0 1 12 0" />
+                <path d="M16 11a3 3 0 0 0 0-6" />
+                <path d="M21 20a5 5 0 0 0-4-4.9" />
+            </>
+        ),
+        wallet: (
+            <>
+                <path d="M4 7h16v12H4z" />
+                <path d="M16 12h4v4h-4z" />
+                <path d="M4 7l3-3h10" />
+            </>
+        ),
+        file: (
+            <>
+                <path d="M6 3h9l3 3v15H6z" />
+                <path d="M14 3v4h4" />
+                <path d="M9 13h6" />
+                <path d="M9 17h6" />
+            </>
+        ),
+        user: (
+            <>
+                <circle cx="12" cy="8" r="3" />
+                <path d="M5 21a7 7 0 0 1 14 0" />
+            </>
+        ),
+        pin: (
+            <>
+                <path d="M12 21s6-5.5 6-11a6 6 0 1 0-12 0c0 5.5 6 11 6 11Z" />
+                <circle cx="12" cy="10" r="2" />
+            </>
+        ),
+        tag: (
+            <>
+                <path d="M20 12 12 20 4 12V4h8l8 8Z" />
+                <circle cx="9" cy="9" r="1" />
+            </>
+        ),
+        bank: (
+            <>
+                <path d="M3 10h18" />
+                <path d="M5 10v8" />
+                <path d="M9 10v8" />
+                <path d="M15 10v8" />
+                <path d="M19 10v8" />
+                <path d="M4 18h16" />
+                <path d="M12 3 4 7h16l-8-4Z" />
+            </>
+        ),
+        folder: (
+            <>
+                <path d="M3 6h7l2 3h9v10H3z" />
+            </>
+        ),
+    };
+
+    return <svg {...common}>{paths[name]}</svg>;
 }
 
 function NavItems({
@@ -160,7 +289,7 @@ function NavItems({
                             {section.items.map((item) => {
                                 const active = item.href === activeHref;
                                 const classes = [
-                                    'flex w-full items-center rounded-md px-3 py-2.5 text-sm font-medium transition duration-150 focus:outline-none focus:ring-2 focus:ring-brand-yellow-400',
+                                    'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition duration-150 focus:outline-none focus:ring-2 focus:ring-brand-yellow-400',
                                     active
                                         ? 'bg-brand-yellow-500 text-brand-black'
                                         : 'text-neutral-300 hover:bg-neutral-800 hover:text-white',
@@ -178,6 +307,7 @@ function NavItems({
                                             aria-disabled="true"
                                             disabled
                                         >
+                                            <NavIcon name={item.icon} />
                                             {item.label}
                                         </button>
                                     );
@@ -193,6 +323,7 @@ function NavItems({
                                             active ? 'page' : undefined
                                         }
                                     >
+                                        <NavIcon name={item.icon} />
                                         {item.label}
                                     </Link>
                                 );
