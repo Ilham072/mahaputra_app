@@ -1,14 +1,15 @@
 import Button from '@/Components/Button';
 import { Card, CardContent, CardTitle } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
+import DataTable, { type DataTableColumn } from '@/Components/DataTable';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ReactNode } from 'react';
-import { CustomerDetail } from './types';
+import type { ReactNode } from 'react';
+import type { CustomerDetail } from './types';
 
 type CustomerShowProps = {
     customer: CustomerDetail;
@@ -17,6 +18,64 @@ type CustomerShowProps = {
 export default function CustomerShow({ customer }: CustomerShowProps) {
     const { auth, flash } = usePage<PageProps>().props;
     const isAdmin = auth.user.role === 'admin';
+    const saleColumns: Array<DataTableColumn<CustomerDetail['sales'][number]>> =
+        [
+            {
+                key: 'sale_date',
+                header: 'Tanggal',
+                cell: (sale) => sale.sale_date,
+            },
+            {
+                key: 'vehicle',
+                header: 'Kendaraan',
+                cellClassName: 'font-medium text-neutral-950',
+                cell: (sale) => (
+                    <>
+                        {sale.vehicle}
+                        <div className="text-xs text-neutral-500">
+                            {sale.plate_number}
+                        </div>
+                    </>
+                ),
+            },
+            {
+                key: 'area',
+                header: 'Area',
+                cell: (sale) => sale.area,
+            },
+            {
+                key: 'employee',
+                header: 'PIC',
+                cell: (sale) => sale.employee,
+            },
+            {
+                key: 'payment_type',
+                header: 'Pembayaran',
+                cell: (sale) => (
+                    <StatusBadge type="payment" value={sale.payment_type} />
+                ),
+            },
+            {
+                key: 'selling_price',
+                header: 'Harga',
+                cellClassName: 'font-semibold text-neutral-950',
+                cell: (sale) => (
+                    <CurrencyDisplay value={sale.selling_price} />
+                ),
+            },
+            {
+                key: 'actions',
+                header: '',
+                align: 'right',
+                cell: (sale) => (
+                    <Link href={route('sales.show', sale.id)}>
+                        <Button type="button" variant="outline" size="sm">
+                            Detail
+                        </Button>
+                    </Link>
+                ),
+            },
+        ];
 
     return (
         <AuthenticatedLayout
@@ -25,14 +84,16 @@ export default function CustomerShow({ customer }: CustomerShowProps) {
                     title={customer.name}
                     description="Detail customer dan riwayat pembelian"
                     actions={
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap justify-end gap-2">
                             <Link href={route('customers.index')}>
                                 <Button type="button" variant="outline">
                                     Kembali
                                 </Button>
                             </Link>
                             {isAdmin && (
-                                <Link href={route('customers.edit', customer.id)}>
+                                <Link
+                                    href={route('customers.edit', customer.id)}
+                                >
                                     <Button type="button">Edit</Button>
                                 </Link>
                             )}
@@ -63,10 +124,7 @@ export default function CustomerShow({ customer }: CustomerShowProps) {
                                         customer.alternative_whatsapp ?? '-',
                                     ],
                                     ['Alamat', customer.address],
-                                    [
-                                        'KTP',
-                                        customer.ktp_original_name ?? '-',
-                                    ],
+                                    ['KTP', customer.ktp_original_name ?? '-'],
                                     [
                                         'Total Transaksi',
                                         String(customer.sales_count),
@@ -94,82 +152,11 @@ export default function CustomerShow({ customer }: CustomerShowProps) {
                                     description="Transaksi customer akan tampil di sini."
                                 />
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-neutral-200">
-                                        <thead className="bg-neutral-50">
-                                            <tr>
-                                                {[
-                                                    'Tanggal',
-                                                    'Kendaraan',
-                                                    'Area',
-                                                    'PIC',
-                                                    'Pembayaran',
-                                                    'Harga',
-                                                    '',
-                                                ].map((heading) => (
-                                                    <th
-                                                        key={heading}
-                                                        className="px-4 py-3 text-left text-xs font-semibold uppercase text-neutral-500"
-                                                    >
-                                                        {heading}
-                                                    </th>
-                                                ))}
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-neutral-200 bg-white">
-                                            {customer.sales.map((sale) => (
-                                                <tr key={sale.id}>
-                                                    <td className="px-4 py-3 text-sm text-neutral-700">
-                                                        {sale.sale_date}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm font-medium text-neutral-950">
-                                                        {sale.vehicle}
-                                                        <div className="text-xs text-neutral-500">
-                                                            {sale.plate_number}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-neutral-700">
-                                                        {sale.area}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-neutral-700">
-                                                        {sale.employee}
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <StatusBadge
-                                                            type="payment"
-                                                            value={
-                                                                sale.payment_type
-                                                            }
-                                                        />
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm font-semibold text-neutral-950">
-                                                        <CurrencyDisplay
-                                                            value={
-                                                                sale.selling_price
-                                                            }
-                                                        />
-                                                    </td>
-                                                    <td className="px-4 py-3 text-right">
-                                                        <Link
-                                                            href={route(
-                                                                'sales.show',
-                                                                sale.id,
-                                                            )}
-                                                        >
-                                                            <Button
-                                                                type="button"
-                                                                variant="outline"
-                                                                size="sm"
-                                                            >
-                                                                Detail
-                                                            </Button>
-                                                        </Link>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <DataTable
+                                    rows={customer.sales}
+                                    columns={saleColumns}
+                                    getRowKey={(sale) => sale.id}
+                                />
                             )}
                         </CardContent>
                     </Card>
