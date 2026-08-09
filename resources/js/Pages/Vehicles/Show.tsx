@@ -1,12 +1,11 @@
 import Button from '@/Components/Button';
 import { Card, CardContent, CardTitle } from '@/Components/Card';
+import Checkbox from '@/Components/Checkbox';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
 import DataTable from '@/Components/DataTable';
 import type { DataTableColumn } from '@/Components/DataTable';
 import EmptyState from '@/Components/EmptyState';
 import FormField from '@/Components/FormField';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
@@ -581,11 +580,12 @@ function PhotoGallery({
                         onSubmit={submit}
                         className="space-y-4 border-t border-neutral-200 pt-5"
                     >
-                        <div>
-                            <InputLabel
-                                htmlFor="vehicle-photos"
-                                value="Tambah Foto"
-                            />
+                        <FormField
+                            htmlFor="vehicle-photos"
+                            label="Tambah Foto"
+                            error={form.errors.photos}
+                            helpText="Maksimal 5 foto, 5 MB per foto."
+                        >
                             <input
                                 id="vehicle-photos"
                                 type="file"
@@ -599,14 +599,7 @@ function PhotoGallery({
                                     )
                                 }
                             />
-                            <InputError
-                                className="mt-2"
-                                message={form.errors.photos}
-                            />
-                            <p className="mt-2 text-xs text-neutral-500">
-                                Maksimal 5 foto, 5 MB per foto.
-                            </p>
-                        </div>
+                        </FormField>
 
                         <Button
                             type="submit"
@@ -798,9 +791,7 @@ function DocumentCard({
                 {canManage && (
                     <form onSubmit={submit} className="space-y-4 border-t border-neutral-200 pt-5">
                         <label className="flex items-center gap-3 rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2">
-                            <input
-                                type="checkbox"
-                                className="rounded-sm border-neutral-300 text-brand-yellow-500 focus:ring-brand-yellow-500"
+                            <Checkbox
                                 checked={form.data.is_available}
                                 onChange={(event) =>
                                     form.setData(
@@ -814,11 +805,11 @@ function DocumentCard({
                             </span>
                         </label>
 
-                        <div>
-                            <InputLabel
-                                htmlFor={`${document.document_type}-file`}
-                                value="File Dokumen"
-                            />
+                        <FormField
+                            htmlFor={`${document.document_type}-file`}
+                            label="File Dokumen"
+                            error={form.errors.document}
+                        >
                             <input
                                 id={`${document.document_type}-file`}
                                 type="file"
@@ -831,30 +822,22 @@ function DocumentCard({
                                     )
                                 }
                             />
-                            <InputError
-                                className="mt-2"
-                                message={form.errors.document}
-                            />
-                        </div>
+                        </FormField>
 
-                        <div>
-                            <InputLabel
-                                htmlFor={`${document.document_type}-note`}
-                                value="Catatan"
-                            />
+                        <FormField
+                            htmlFor={`${document.document_type}-note`}
+                            label="Catatan"
+                            error={form.errors.note}
+                        >
                             <textarea
                                 id={`${document.document_type}-note`}
-                                className="mt-1 block min-h-20 w-full rounded-md border-neutral-300 shadow-sm focus:border-brand-yellow-500 focus:ring-brand-yellow-500"
+                                className="block min-h-20 w-full rounded-md border-neutral-300 text-sm shadow-sm focus:border-brand-yellow-500 focus:ring-brand-yellow-500"
                                 value={form.data.note}
                                 onChange={(event) =>
                                     form.setData('note', event.target.value)
                                 }
                             />
-                            <InputError
-                                className="mt-2"
-                                message={form.errors.note}
-                            />
-                        </div>
+                        </FormField>
 
                         <Button
                             type="submit"
