@@ -1,0 +1,1 @@
+import{j as a}from"./app-CIg7yQhP.js";import{B as n}from"./Button-DPDMtqvh.js";function p({type:r="submit",className:t="",disabled:o,children:i,...m}){return a.jsx(n,{...m,type:r,variant:"primary",className:t,disabled:o,children:i})}export{p as P};

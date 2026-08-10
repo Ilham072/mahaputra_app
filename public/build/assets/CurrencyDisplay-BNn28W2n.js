@@ -1,0 +1,1 @@
+import{j as t}from"./app-CIg7yQhP.js";import{c as a}from"./classNames-2dOUpm6k.js";function m(r){const n=Number(r??0);return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n).replace(/\s/g," ")}function u({value:r,className:n}){return t.jsx("span",{className:a("tabular-nums",n),children:m(r)})}export{u as C};
