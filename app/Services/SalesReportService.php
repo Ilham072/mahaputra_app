@@ -100,6 +100,48 @@ class SalesReportService
 
     /**
      * @param  array{date_from: string, date_to: string, search: string, area_id: string, employee_id: string, payment_type: string, capital_type: string}  $filters
+     * @return array{payment: list<array{type: string, count: int, percentage: int}>, areas: list<array{name: string, count: int, value: int}>, employees: list<array{name: string, count: int, value: int}>}
+     */
+    public function dashboardData(Builder $query): array
+    {
+        $sales = $query->get();
+        $salesCount = max($sales->count(), 1);
+
+        $payment = collect(PaymentType::cases())
+            ->map(function (PaymentType $type) use ($sales, $salesCount): array {
+                $count = $sales->where('payment_type', $type)->count();
+
+                return [
+                    'type' => $type->value,
+                    'count' => $count,
+                    'percentage' => (int) round(($count / $salesCount) * 100),
+                ];
+            })
+            ->values()
+            ->all();
+
+        $groupBy = static function ($relation) use ($sales): array {
+            return $sales
+                ->groupBy(fn (Sale $sale): string => $sale->{$relation}?->name ?? 'Tanpa data')
+                ->map(fn ($rows, string $name): array => [
+                    'name' => $name,
+                    'count' => $rows->count(),
+                    'value' => (int) $rows->sum(fn (Sale $sale): int => $sale->payment_type === PaymentType::Credit ? $sale->credit_total : $sale->selling_price),
+                ])
+                ->sortByDesc('value')
+                ->values()
+                ->all();
+        };
+
+        return [
+            'payment' => $payment,
+            'areas' => $groupBy('area'),
+            'employees' => $groupBy('employee'),
+        ];
+    }
+
+    /**
+     * @param  array{date_from: string, date_to: string, search: string, area_id: string, employee_id: string, payment_type: string, capital_type: string}  $filters
      */
     public function operationalTotal(array $filters): int
     {

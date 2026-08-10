@@ -45,7 +45,7 @@ const navigation: NavSection[] = [
             },
             {
                 label: 'Rekap Penjualan',
-                href: '/reports',
+                href: '/sales/recap',
                 icon: 'chart',
                 shortLabel: 'Rekap',
             },
@@ -59,6 +59,17 @@ const navigation: NavSection[] = [
                 href: '/operations',
                 icon: 'wallet',
                 shortLabel: 'Operasi',
+            },
+        ],
+    },
+    {
+        label: 'Laporan',
+        items: [
+            {
+                label: 'Laporan',
+                href: '/reports',
+                icon: 'file',
+                shortLabel: 'Laporan',
             },
         ],
     },
