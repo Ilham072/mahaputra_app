@@ -58,6 +58,10 @@ class DashboardTest extends TestCase
                 ->where('salesTrend.5.month', '2026-08')
                 ->where('salesTrend.5.sales_count', 1)
                 ->where('salesTrend.5.sales_value', 150000000)
+                ->has('expenseBreakdown', 1)
+                ->where('expenseBreakdown.0.name', 'Listrik')
+                ->where('expenseBreakdown.0.total', 2000000)
+                ->where('expenseBreakdown.0.percentage', 100)
                 ->has('recentSales', 2)
                 ->where('recentSales.0.customer_name', 'Pembeli Agustus')
                 ->has('recentVehicles', 4)
@@ -91,6 +95,8 @@ class DashboardTest extends TestCase
                 ->where('metrics.operational_total', 3000000)
                 ->where('salesTrend.5.month', '2026-07')
                 ->where('salesTrend.5.sales_value', 138000000)
+                ->has('expenseBreakdown', 1)
+                ->where('expenseBreakdown.0.total', 3000000)
             );
     }
 

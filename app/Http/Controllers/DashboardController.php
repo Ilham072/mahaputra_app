@@ -48,6 +48,7 @@ class DashboardController extends Controller
                     ->sum('amount'),
             ],
             'salesTrend' => $this->salesTrend($periodStart, $salesReport),
+            'expenseBreakdown' => $this->expenseBreakdown($periodStart, $periodEnd),
             'recentSales' => Sale::query()
                 ->with(['vehicle.brand', 'customer', 'area'])
                 ->latest('sale_date')
@@ -115,6 +116,37 @@ class DashboardController extends Controller
                     'profit_total' => $summary['profit_total'],
                 ];
             })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{name: string, total: int, percentage: int}>
+     */
+    private function expenseBreakdown(CarbonImmutable $periodStart, CarbonImmutable $periodEnd): array
+    {
+        $rows = OperationalExpense::query()
+            ->leftJoin('expense_categories', 'operational_expenses.category_id', '=', 'expense_categories.id')
+            ->whereBetween('operational_expenses.transaction_date', [$periodStart->toDateString(), $periodEnd->toDateString()])
+            ->selectRaw("COALESCE(expense_categories.name, 'Tanpa Kategori') as name")
+            ->selectRaw('COALESCE(SUM(operational_expenses.amount), 0) as total')
+            ->groupBy('expense_categories.name')
+            ->orderByDesc('total')
+            ->limit(4)
+            ->get()
+            ->map(fn ($row): array => [
+                'name' => (string) $row->name,
+                'total' => (int) $row->total,
+            ]);
+
+        $total = max($rows->sum('total'), 1);
+
+        return $rows
+            ->map(fn (array $row): array => [
+                'name' => $row['name'],
+                'total' => $row['total'],
+                'percentage' => (int) round(($row['total'] / $total) * 100),
+            ])
             ->values()
             ->all();
     }

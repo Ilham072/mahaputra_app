@@ -40,6 +40,12 @@ type RecentVehicle = {
     asking_price: number;
 };
 
+type ExpenseBreakdownItem = {
+    name: string;
+    total: number;
+    percentage: number;
+};
+
 type DashboardProps = {
     period: {
         month: string;
@@ -57,6 +63,7 @@ type DashboardProps = {
         operational_total: number;
     };
     salesTrend: TrendPoint[];
+    expenseBreakdown: ExpenseBreakdownItem[];
     recentSales: RecentSale[];
     recentVehicles: RecentVehicle[];
 };
@@ -65,6 +72,7 @@ export default function Dashboard({
     period,
     metrics,
     salesTrend,
+    expenseBreakdown,
     recentSales,
     recentVehicles,
 }: DashboardProps) {
@@ -241,7 +249,10 @@ export default function Dashboard({
                     <ProfitLineCard items={salesTrend} />
 
                     <div className="space-y-4">
-                        <ExpenseSummaryCard total={metrics.operational_total} />
+                        <ExpenseSummaryCard
+                            total={metrics.operational_total}
+                            items={expenseBreakdown}
+                        />
                         <QuickActionsCard isAdmin={isAdmin} />
                     </div>
                 </section>
@@ -636,7 +647,13 @@ function ProfitLineCard({ items }: { items: TrendPoint[] }) {
     );
 }
 
-function ExpenseSummaryCard({ total }: { total: number }) {
+function ExpenseSummaryCard({
+    total,
+    items,
+}: {
+    total: number;
+    items: ExpenseBreakdownItem[];
+}) {
     return (
         <SideCard
             title="Pengeluaran Bulan Ini"
@@ -647,15 +664,33 @@ function ExpenseSummaryCard({ total }: { total: number }) {
                 value={total}
                 className="block text-2xl font-bold text-neutral-950"
             />
-            <UnavailableRows
-                lines={[
-                    'Operasional Showroom',
-                    'Transportasi',
-                    'Perawatan',
-                    'Lainnya',
-                ]}
-                note="Breakdown kategori belum tersedia pada props dashboard."
-            />
+            {items.length === 0 ? (
+                <p className="mt-4 text-xs text-neutral-500">
+                    Belum ada pengeluaran pada periode ini.
+                </p>
+            ) : (
+                <div className="mt-4 space-y-3">
+                    {items.map((item) => (
+                        <div key={item.name} className="space-y-1">
+                            <div className="flex items-center justify-between gap-3 text-xs">
+                                <span className="truncate text-neutral-600">
+                                    {item.name}
+                                </span>
+                                <CurrencyDisplay
+                                    value={item.total}
+                                    className="shrink-0 font-semibold text-neutral-950"
+                                />
+                            </div>
+                            <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100">
+                                <div
+                                    className="h-full rounded-full bg-neutral-300"
+                                    style={{ width: `${item.percentage}%` }}
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </SideCard>
     );
 }
