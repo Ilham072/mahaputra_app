@@ -10,12 +10,13 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 
 type TrendPoint = {
     month: string;
     label: string;
     sales_count: number;
+    sales_value: number;
     profit_total: number;
 };
 
@@ -51,6 +52,7 @@ type DashboardProps = {
         vehicles_ready: number;
         vehicles_preparation: number;
         sales_count: number;
+        sales_value: number;
         vehicle_profit: number;
         operational_total: number;
     };
@@ -84,9 +86,8 @@ export default function Dashboard({
         },
         {
             label: 'Omzet Penjualan',
-            value: 'Belum tersedia',
-            caption: 'Perlu data total nilai penjualan',
-            note: 'Data backend belum dikirim',
+            value: formatShortCurrency(metrics.sales_value),
+            caption: period.label,
         },
         {
             label: 'Laba Kendaraan',
@@ -530,13 +531,17 @@ function StockAgeCard() {
 }
 
 function ProfitLineCard({ items }: { items: TrendPoint[] }) {
+    const [metric, setMetric] = useState<'sales_value' | 'profit_total'>(
+        'profit_total',
+    );
+    const metricLabel = metric === 'sales_value' ? 'Omzet' : 'Laba';
     const maxValue = Math.max(
-        ...items.map((item) => Math.abs(item.profit_total)),
+        ...items.map((item) => Math.abs(item[metric])),
         1,
     );
     const points = items.map((item, index) => {
         const x = items.length === 1 ? 50 : (index / (items.length - 1)) * 100;
-        const y = 100 - (Math.abs(item.profit_total) / maxValue) * 78 - 8;
+        const y = 100 - (Math.abs(item[metric]) / maxValue) * 78 - 8;
 
         return { ...item, x, y };
     });
@@ -548,16 +553,32 @@ function ProfitLineCard({ items }: { items: TrendPoint[] }) {
                 <div>
                     <CardTitle>Tren Omzet & Laba Kendaraan</CardTitle>
                     <p className="mt-2 text-xs text-neutral-500">
-                        Laba kendaraan berdasarkan data yang tersedia
+                        {metricLabel} kendaraan berdasarkan data yang tersedia
                     </p>
                 </div>
                 <div className="flex rounded-md bg-neutral-100 p-1 text-xs font-semibold">
-                    <span className="rounded bg-surface px-3 py-1 text-neutral-500">
+                    <button
+                        type="button"
+                        onClick={() => setMetric('sales_value')}
+                        className={`rounded px-3 py-1 transition ${
+                            metric === 'sales_value'
+                                ? 'bg-surface text-neutral-950 shadow-card'
+                                : 'text-neutral-500 hover:text-neutral-950'
+                        }`}
+                    >
                         Omzet
-                    </span>
-                    <span className="rounded bg-surface px-3 py-1 text-neutral-950 shadow-card">
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setMetric('profit_total')}
+                        className={`rounded px-3 py-1 transition ${
+                            metric === 'profit_total'
+                                ? 'bg-surface text-neutral-950 shadow-card'
+                                : 'text-neutral-500 hover:text-neutral-950'
+                        }`}
+                    >
                         Laba
-                    </span>
+                    </button>
                 </div>
             </div>
             <CardContent>
@@ -602,10 +623,14 @@ function ProfitLineCard({ items }: { items: TrendPoint[] }) {
                         </div>
                     ))}
                 </div>
-                <p className="mt-4 text-xs text-amber-700">
-                    Omzet trend belum ditampilkan karena data omzet bulanan belum
-                    tersedia dari backend.
-                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-500">
+                    {items.map((item) => (
+                        <span key={`${item.month}-${metric}-value`}>
+                            {formatChartMonth(item.label)}:{' '}
+                            {formatShortCurrency(item[metric])}
+                        </span>
+                    ))}
+                </div>
             </CardContent>
         </Card>
     );

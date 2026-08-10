@@ -6,6 +6,7 @@ use App\Enums\VehicleStatus;
 use App\Models\OperationalExpense;
 use App\Models\Sale;
 use App\Models\Vehicle;
+use App\Services\SalesReportService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,7 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, SalesReportService $salesReport): Response
     {
         $periodStart = $this->periodStart($request);
         $periodEnd = $periodStart->endOfMonth();
@@ -26,6 +27,7 @@ class DashboardController extends Controller
 
         $periodSales = Sale::query()
             ->whereBetween('sale_date', [$periodStart->toDateString(), $periodEnd->toDateString()]);
+        $periodSalesSummary = $salesReport->summary(clone $periodSales);
 
         return Inertia::render('Dashboard', [
             'period' => [
@@ -38,13 +40,14 @@ class DashboardController extends Controller
                 'vehicles_total' => Vehicle::query()->count(),
                 'vehicles_ready' => (int) ($vehicleStatusCounts[VehicleStatus::Ready->value] ?? 0),
                 'vehicles_preparation' => (int) ($vehicleStatusCounts[VehicleStatus::Preparation->value] ?? 0),
-                'sales_count' => (clone $periodSales)->count(),
-                'vehicle_profit' => (int) (clone $periodSales)->sum('profit_snapshot'),
+                'sales_count' => $periodSalesSummary['sales_count'],
+                'sales_value' => $periodSalesSummary['sales_value'],
+                'vehicle_profit' => $periodSalesSummary['profit_total'],
                 'operational_total' => (int) OperationalExpense::query()
                     ->whereBetween('transaction_date', [$periodStart->toDateString(), $periodEnd->toDateString()])
                     ->sum('amount'),
             ],
-            'salesTrend' => $this->salesTrend($periodStart),
+            'salesTrend' => $this->salesTrend($periodStart, $salesReport),
             'recentSales' => Sale::query()
                 ->with(['vehicle.brand', 'customer', 'area'])
                 ->latest('sale_date')
@@ -92,22 +95,24 @@ class DashboardController extends Controller
     }
 
     /**
-     * @return list<array{month: string, label: string, sales_count: int, profit_total: int}>
+     * @return list<array{month: string, label: string, sales_count: int, sales_value: int, profit_total: int}>
      */
-    private function salesTrend(CarbonImmutable $periodStart): array
+    private function salesTrend(CarbonImmutable $periodStart, SalesReportService $salesReport): array
     {
         return collect(range(5, 0))
-            ->map(function (int $offset) use ($periodStart): array {
+            ->map(function (int $offset) use ($periodStart, $salesReport): array {
                 $monthStart = $periodStart->subMonths($offset)->startOfMonth();
                 $monthEnd = $monthStart->endOfMonth();
                 $sales = Sale::query()
                     ->whereBetween('sale_date', [$monthStart->toDateString(), $monthEnd->toDateString()]);
+                $summary = $salesReport->summary($sales);
 
                 return [
                     'month' => $monthStart->format('Y-m'),
                     'label' => $this->monthLabel($monthStart, true),
-                    'sales_count' => (clone $sales)->count(),
-                    'profit_total' => (int) (clone $sales)->sum('profit_snapshot'),
+                    'sales_count' => $summary['sales_count'],
+                    'sales_value' => $summary['sales_value'],
+                    'profit_total' => $summary['profit_total'],
                 ];
             })
             ->values()

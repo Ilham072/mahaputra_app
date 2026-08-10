@@ -48,13 +48,16 @@ class DashboardTest extends TestCase
                 ->where('metrics.vehicles_ready', 1)
                 ->where('metrics.vehicles_preparation', 1)
                 ->where('metrics.sales_count', 1)
+                ->where('metrics.sales_value', 150000000)
                 ->where('metrics.vehicle_profit', 10000000)
                 ->where('metrics.operational_total', 2000000)
                 ->has('salesTrend', 6)
                 ->where('salesTrend.4.month', '2026-07')
                 ->where('salesTrend.4.sales_count', 1)
+                ->where('salesTrend.4.sales_value', 150000000)
                 ->where('salesTrend.5.month', '2026-08')
                 ->where('salesTrend.5.sales_count', 1)
+                ->where('salesTrend.5.sales_value', 150000000)
                 ->has('recentSales', 2)
                 ->where('recentSales.0.customer_name', 'Pembeli Agustus')
                 ->has('recentVehicles', 4)
@@ -67,7 +70,13 @@ class DashboardTest extends TestCase
     public function test_dashboard_can_be_filtered_by_month(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
-        $this->createSale($this->createVehicle('DD 2001 MP', VehicleStatus::Sold), '2026-07-20', 15000000);
+        $this->createSale(
+            $this->createVehicle('DD 2001 MP', VehicleStatus::Sold),
+            '2026-07-20',
+            15000000,
+            paymentType: PaymentType::Credit,
+            creditTotal: 138000000,
+        );
         $this->createSale($this->createVehicle('DD 2002 MP', VehicleStatus::Sold), '2026-08-20', 5000000);
         $this->createExpense('2026-07-10', 3000000);
 
@@ -77,8 +86,11 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('period.month', '2026-07')
                 ->where('metrics.sales_count', 1)
+                ->where('metrics.sales_value', 138000000)
                 ->where('metrics.vehicle_profit', 15000000)
                 ->where('metrics.operational_total', 3000000)
+                ->where('salesTrend.5.month', '2026-07')
+                ->where('salesTrend.5.sales_value', 138000000)
             );
     }
 
@@ -120,6 +132,8 @@ class DashboardTest extends TestCase
         string $saleDate,
         int $profit,
         string $customerName = 'Pembeli',
+        PaymentType $paymentType = PaymentType::Cash,
+        int $creditTotal = 0,
     ): Sale {
         $employee = Employee::query()->firstOrCreate(['name' => 'Admin PIC']);
         $area = Area::query()->firstOrCreate(['name' => 'Bone']);
@@ -136,9 +150,9 @@ class DashboardTest extends TestCase
             'employee_id' => $employee->id,
             'area_id' => $area->id,
             'sale_date' => $saleDate,
-            'payment_type' => PaymentType::Cash->value,
+            'payment_type' => $paymentType->value,
             'selling_price' => 150000000,
-            'credit_total' => 0,
+            'credit_total' => $creditTotal,
             'initial_capital_snapshot' => 120000000,
             'vehicle_cost_snapshot' => 0,
             'final_capital_snapshot' => 120000000,
