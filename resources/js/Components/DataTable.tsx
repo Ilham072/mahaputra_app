@@ -32,7 +32,7 @@ export default function DataTable<T>({
 }: DataTableProps<T>) {
     return (
         <div className="overflow-x-auto">
-            <table className={`${minWidth} divide-y divide-neutral-200`}>
+            <table className={`w-full ${minWidth} divide-y divide-neutral-200`}>
                 <thead className="bg-neutral-50">
                     <tr>
                         {columns.map((column) => (

@@ -1,12 +1,17 @@
 import Button from '@/Components/Button';
 import { Card, CardContent } from '@/Components/Card';
+import CurrencyDisplay from '@/Components/CurrencyDisplay';
 import DataTable, { type DataTableColumn } from '@/Components/DataTable';
+import Dropdown from '@/Components/Dropdown';
 import EmptyState from '@/Components/EmptyState';
+import KpiCard from '@/Components/KpiCard';
 import PageHeader from '@/Components/PageHeader';
+import SelectInput from '@/Components/SelectInput';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router } from '@inertiajs/react';
-import { type FormEventHandler, useState } from 'react';
+import { PageProps } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { type FormEventHandler, type ReactNode, useState } from 'react';
 import type { CustomerSummary } from './types';
 
 type PaginationLink = {
@@ -15,56 +20,72 @@ type PaginationLink = {
     active: boolean;
 };
 
+type AreaOption = {
+    id: number;
+    name: string;
+};
+
+type CustomerFilters = {
+    search: string;
+    area_id: string;
+    customer_status: string;
+};
+
 type CustomerIndexProps = {
     customers: {
         data: CustomerSummary[];
         links: PaginationLink[];
     };
-    filters: {
-        search: string;
+    filters: CustomerFilters;
+    summary: {
+        total_customers: number;
+        new_customers_this_month: number;
+    };
+    options: {
+        areas: AreaOption[];
     };
 };
 
 export default function CustomerIndex({
     customers,
     filters,
+    summary,
+    options,
 }: CustomerIndexProps) {
-    const [filterData, setFilterData] = useState(filters);
+    const { auth } = usePage<PageProps>().props;
+    const isAdmin = auth.user.role === 'admin';
+    const [filterData, setFilterData] = useState<CustomerFilters>(filters);
 
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
 
-        router.get(route('customers.index'), filterData, {
+        router.get(route('customers.index'), cleanFilters(filterData), {
             preserveState: true,
             replace: true,
         });
     };
 
     const clearFilters = () => {
-        setFilterData({ search: '' });
+        const emptyFilters = {
+            search: '',
+            area_id: '',
+            customer_status: '',
+        };
+
+        setFilterData(emptyFilters);
         router.get(route('customers.index'), {}, { replace: true });
     };
 
     const customerColumns: Array<DataTableColumn<CustomerSummary>> = [
         {
-            key: 'name',
-            header: 'Nama',
-            cellClassName: 'font-medium text-neutral-950',
-            cell: (customer) => customer.name,
+            key: 'customer',
+            header: 'Customer',
+            cell: (customer) => <CustomerIdentity customer={customer} />,
         },
         {
             key: 'whatsapp',
             header: 'WhatsApp',
-            cell: (customer) => (
-                <>
-                    {customer.whatsapp}
-                    {customer.alternative_whatsapp && (
-                        <div className="text-xs text-neutral-500">
-                            {customer.alternative_whatsapp}
-                        </div>
-                    )}
-                </>
-            ),
+            cell: (customer) => <WhatsAppValue value={customer.whatsapp} />,
         },
         {
             key: 'address',
@@ -76,23 +97,28 @@ export default function CustomerIndex({
             key: 'sales_count',
             header: 'Transaksi',
             cellClassName: 'font-semibold text-neutral-950',
-            cell: (customer) => customer.sales_count,
+            cell: (customer) => transactionLabel(customer.sales_count),
+        },
+        {
+            key: 'total_purchase',
+            header: 'Total Pembelian',
+            align: 'right',
+            cellClassName: 'font-semibold text-neutral-950',
+            cell: (customer) => (
+                <CurrencyDisplay value={customer.total_purchase} />
+            ),
         },
         {
             key: 'last_sale_date',
             header: 'Terakhir',
-            cell: (customer) => customer.last_sale_date ?? '-',
+            cell: (customer) => formatDate(customer.last_sale_date),
         },
         {
             key: 'actions',
-            header: '',
+            header: 'Aksi',
             align: 'right',
             cell: (customer) => (
-                <Link href={route('customers.show', customer.id)}>
-                    <Button type="button" variant="outline" size="sm">
-                        Detail
-                    </Button>
-                </Link>
+                <CustomerActions customer={customer} isAdmin={isAdmin} />
             ),
         },
     ];
@@ -102,66 +128,140 @@ export default function CustomerIndex({
             header={
                 <PageHeader
                     title="Customer"
-                    description="Data pembeli dan riwayat transaksi"
+                    description="Data dan riwayat customer showroom"
+                    actions={
+                        isAdmin ? (
+                            <Link href={route('sales.index')}>
+                                <Button type="button">
+                                    + Tambah Customer
+                                </Button>
+                            </Link>
+                        ) : undefined
+                    }
                 />
             }
         >
             <Head title="Customer" />
 
             <div className="space-y-5 lg:space-y-6">
+                <div className="grid gap-4 sm:grid-cols-2">
+                    <KpiCard
+                        label="Total Customer"
+                        value={summary.total_customers}
+                        caption="Seluruh data customer"
+                    />
+                    <KpiCard
+                        label="Customer Baru Bulan Ini"
+                        value={summary.new_customers_this_month}
+                        caption="Berdasarkan tanggal dibuat"
+                    />
+                </div>
+
                 <Card>
                     <CardContent className="p-4 sm:p-5">
-                        <form
-                            onSubmit={submit}
-                            className="grid gap-3 sm:grid-cols-[minmax(180px,1fr)_auto_auto]"
-                        >
-                            <TextInput
-                                placeholder="Cari nama atau WhatsApp"
-                                value={filterData.search}
-                                onChange={(event) =>
-                                    setFilterData({
-                                        search: event.target.value,
-                                    })
-                                }
-                            />
-                            <Button
-                                type="submit"
-                                variant="secondary"
-                                className="w-full sm:w-auto"
-                            >
-                                Filter
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={clearFilters}
-                                className="w-full sm:w-auto"
-                            >
-                                Bersihkan
-                            </Button>
+                        <form onSubmit={submit} className="space-y-4">
+                            <div className="grid gap-3 lg:grid-cols-[minmax(240px,1fr)_220px_220px_auto_auto]">
+                                <label className="relative block">
+                                    <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
+                                    <TextInput
+                                        placeholder="Cari nama atau nomor WhatsApp..."
+                                        className="h-11 pl-12"
+                                        value={filterData.search}
+                                        onChange={(event) =>
+                                            setFilterData({
+                                                ...filterData,
+                                                search: event.target.value,
+                                            })
+                                        }
+                                    />
+                                </label>
+                                <SelectInput
+                                    value={filterData.area_id}
+                                    onChange={(event) =>
+                                        setFilterData({
+                                            ...filterData,
+                                            area_id: event.target.value,
+                                        })
+                                    }
+                                >
+                                    <option value="">Semua Area</option>
+                                    {options.areas.map((area) => (
+                                        <option key={area.id} value={area.id}>
+                                            {area.name}
+                                        </option>
+                                    ))}
+                                </SelectInput>
+                                <SelectInput
+                                    value={filterData.customer_status}
+                                    onChange={(event) =>
+                                        setFilterData({
+                                            ...filterData,
+                                            customer_status:
+                                                event.target.value,
+                                        })
+                                    }
+                                >
+                                    <option value="">Semua Customer</option>
+                                    <option value="with_transactions">
+                                        Sudah Pernah Transaksi
+                                    </option>
+                                    <option value="without_transactions">
+                                        Belum Ada Transaksi
+                                    </option>
+                                </SelectInput>
+                                <Button
+                                    type="submit"
+                                    variant="secondary"
+                                    className="w-full lg:w-auto"
+                                >
+                                    Filter
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={clearFilters}
+                                    className="w-full lg:w-auto"
+                                >
+                                    Bersihkan
+                                </Button>
+                            </div>
                         </form>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardContent className="p-0">
-                        {customers.data.length === 0 ? (
-                            <div className="p-5">
-                                <EmptyState
-                                    title="Belum ada customer."
-                                    description="Customer akan muncul setelah transaksi penjualan disimpan."
-                                />
-                            </div>
-                        ) : (
-                            <DataTable
-                                rows={customers.data}
-                                columns={customerColumns}
-                                getRowKey={(customer) => customer.id}
-                                minWidth="min-w-[640px]"
+                {customers.data.length === 0 ? (
+                    <Card>
+                        <CardContent>
+                            <EmptyState
+                                title="Belum ada customer."
+                                description="Customer akan muncul setelah transaksi penjualan disimpan."
                             />
-                        )}
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <>
+                        <Card className="hidden lg:block">
+                            <CardContent className="p-0">
+                                <DataTable
+                                    rows={customers.data}
+                                    columns={customerColumns}
+                                    getRowKey={(customer) => customer.id}
+                                    minWidth="min-w-[980px]"
+                                />
+                            </CardContent>
+                        </Card>
+
+                        <div className="grid gap-3 lg:hidden">
+                            {customers.data.map((customer) => (
+                                <CustomerMobileCard
+                                    key={customer.id}
+                                    customer={customer}
+                                    isAdmin={isAdmin}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
 
                 {customers.links.length > 3 && (
                     <div className="flex flex-wrap justify-end gap-2">
@@ -184,5 +284,236 @@ export default function CustomerIndex({
                 )}
             </div>
         </AuthenticatedLayout>
+    );
+}
+
+function CustomerMobileCard({
+    customer,
+    isAdmin,
+}: {
+    customer: CustomerSummary;
+    isAdmin: boolean;
+}) {
+    return (
+        <Card>
+            <CardContent className="space-y-4 p-4">
+                <div className="flex items-start justify-between gap-3">
+                    <CustomerIdentity customer={customer} />
+                    <CustomerActions customer={customer} isAdmin={isAdmin} />
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                    <MobileMetric
+                        label="WhatsApp"
+                        value={<WhatsAppValue value={customer.whatsapp} />}
+                    />
+                    <MobileMetric
+                        label="Area"
+                        value={customer.latest_area ?? '-'}
+                    />
+                    <MobileMetric
+                        label="Transaksi"
+                        value={transactionLabel(customer.sales_count)}
+                    />
+                    <MobileMetric
+                        label="Total Pembelian"
+                        value={
+                            <CurrencyDisplay value={customer.total_purchase} />
+                        }
+                    />
+                    <MobileMetric
+                        label="Terakhir"
+                        value={formatDate(customer.last_sale_date)}
+                    />
+                </div>
+                <div className="flex gap-2">
+                    <a
+                        href={whatsAppUrl(customer.whatsapp)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex h-10 flex-1 items-center justify-center rounded-md border border-green-200 bg-green-50 px-3 text-sm font-semibold text-green-700"
+                    >
+                        WhatsApp
+                    </a>
+                    <Link
+                        href={route('customers.show', customer.id)}
+                        className="inline-flex h-10 flex-1 items-center justify-center rounded-md border border-neutral-300 bg-surface px-3 text-sm font-semibold text-neutral-900"
+                    >
+                        Detail
+                    </Link>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function CustomerActions({
+    customer,
+    isAdmin,
+}: {
+    customer: CustomerSummary;
+    isAdmin: boolean;
+}) {
+    return (
+        <Dropdown>
+            <Dropdown.Trigger>
+                <button
+                    type="button"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-surface text-lg font-bold leading-none text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
+                    aria-label={`Aksi ${customer.name}`}
+                >
+                    ...
+                </button>
+            </Dropdown.Trigger>
+            <Dropdown.Content>
+                <Dropdown.Link href={route('customers.show', customer.id)}>
+                    Lihat Detail
+                </Dropdown.Link>
+                {isAdmin && (
+                    <Dropdown.Link href={route('customers.edit', customer.id)}>
+                        Edit Customer
+                    </Dropdown.Link>
+                )}
+                <a
+                    href={whatsAppUrl(customer.whatsapp)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block w-full px-4 py-2 text-start text-sm leading-5 text-green-700 transition duration-150 ease-in-out hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
+                >
+                    WhatsApp
+                </a>
+            </Dropdown.Content>
+        </Dropdown>
+    );
+}
+
+function CustomerIdentity({ customer }: { customer: CustomerSummary }) {
+    return (
+        <div className="flex min-w-0 items-center gap-3">
+            <InitialAvatar name={customer.name} />
+            <div className="min-w-0">
+                <div className="truncate font-semibold text-neutral-950">
+                    {customer.name}
+                </div>
+                <div className="truncate text-xs text-neutral-500">
+                    {customer.latest_area ?? 'Area belum tersedia'}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function InitialAvatar({ name }: { name: string }) {
+    return (
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-yellow-500 text-sm font-bold uppercase text-brand-black">
+            {initials(name)}
+        </span>
+    );
+}
+
+function WhatsAppValue({ value }: { value: string }) {
+    return (
+        <span className="inline-flex items-center gap-2 font-medium text-neutral-800">
+            <span className="h-2 w-2 rounded-full bg-green-500" />
+            {formatWhatsApp(value)}
+        </span>
+    );
+}
+
+function MobileMetric({
+    label,
+    value,
+}: {
+    label: string;
+    value: ReactNode;
+}) {
+    return (
+        <div>
+            <div className="text-xs font-semibold uppercase text-neutral-400">
+                {label}
+            </div>
+            <div className="mt-1 font-semibold text-neutral-950">{value}</div>
+        </div>
+    );
+}
+
+function cleanFilters(filters: CustomerFilters) {
+    return Object.fromEntries(
+        Object.entries(filters).filter(([, value]) => value !== ''),
+    );
+}
+
+function transactionLabel(count: number) {
+    return `${count} transaksi`;
+}
+
+function initials(name: string) {
+    return name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join('');
+}
+
+function normalizePhone(value: string) {
+    const digits = value.replace(/\D/g, '');
+
+    if (digits.startsWith('0')) {
+        return `62${digits.slice(1)}`;
+    }
+
+    if (digits.startsWith('62')) {
+        return digits;
+    }
+
+    return digits;
+}
+
+function formatWhatsApp(value: string) {
+    const normalized = normalizePhone(value);
+
+    if (!normalized.startsWith('62')) {
+        return value;
+    }
+
+    const local = normalized.slice(2);
+    const first = local.slice(0, 3);
+    const second = local.slice(3, 7);
+    const rest = local.slice(7);
+
+    return ['+62', first, second, rest].filter(Boolean).join(' ');
+}
+
+function whatsAppUrl(value: string) {
+    return `https://wa.me/${normalizePhone(value)}`;
+}
+
+function formatDate(value: string | null) {
+    if (!value) {
+        return '-';
+    }
+
+    return new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    }).format(new Date(value));
+}
+
+function SearchIcon({ className = '' }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+        </svg>
     );
 }

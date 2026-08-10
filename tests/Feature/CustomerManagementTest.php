@@ -36,9 +36,14 @@ class CustomerManagementTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Customers/Index')
                 ->where('filters.search', 'Andi')
+                ->where('filters.area_id', '')
+                ->where('filters.customer_status', '')
+                ->where('summary.total_customers', 2)
                 ->has('customers.data', 1)
                 ->where('customers.data.0.id', $matchingCustomer->id)
                 ->where('customers.data.0.sales_count', 1)
+                ->where('customers.data.0.total_purchase', 150000000)
+                ->where('customers.data.0.latest_area', 'Area 0811111111')
             );
 
         $this->actingAs($owner)
@@ -61,8 +66,12 @@ class CustomerManagementTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Customers/Show')
                 ->where('customer.name', 'Andi Customer')
+                ->where('customer.sales_count', 1)
+                ->where('customer.total_purchase', 150000000)
+                ->where('customer.latest_area', 'Area 0811111111')
                 ->where('customer.ktp_original_name', 'ktp.jpg')
                 ->where('customer.sales.0.plate_number', 'DD 2301 CST')
+                ->where('customer.sales.0.year', 2022)
                 ->missing('customer.ktp_file_path')
             );
     }

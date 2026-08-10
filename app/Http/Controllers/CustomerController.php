@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CustomerRequest;
+use App\Models\Area;
 use App\Models\Customer;
 use App\Models\Sale;
 use Illuminate\Http\RedirectResponse;
@@ -17,16 +18,30 @@ class CustomerController extends Controller
 {
     public function index(Request $request): Response
     {
+        $search = $request->string('search')->toString();
+        $areaId = $request->string('area_id')->toString();
+        $customerStatus = $request->string('customer_status')->toString();
+
         $customers = Customer::query()
             ->withCount('sales')
+            ->withSum('sales as total_purchase', 'selling_price')
             ->withMax('sales', 'sale_date')
-            ->when($request->string('search')->toString(), function ($query, string $search): void {
+            ->with([
+                'sales' => fn ($query) => $query
+                    ->with('area')
+                    ->latest('sale_date')
+                    ->latest('id'),
+            ])
+            ->when($search, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('name', 'like', "%{$search}%")
                         ->orWhere('whatsapp', 'like', "%{$search}%")
                         ->orWhere('alternative_whatsapp', 'like', "%{$search}%");
                 });
             })
+            ->when($areaId !== '', fn ($query) => $query->whereHas('sales', fn ($query) => $query->where('area_id', $areaId)))
+            ->when($customerStatus === 'with_transactions', fn ($query) => $query->has('sales'))
+            ->when($customerStatus === 'without_transactions', fn ($query) => $query->doesntHave('sales'))
             ->latest('sales_max_sale_date')
             ->latest('id')
             ->paginate(15)
@@ -36,19 +51,37 @@ class CustomerController extends Controller
         return Inertia::render('Customers/Index', [
             'customers' => $customers,
             'filters' => [
-                'search' => $request->string('search')->toString(),
+                'search' => $search,
+                'area_id' => $areaId,
+                'customer_status' => $customerStatus,
+            ],
+            'summary' => [
+                'total_customers' => Customer::query()->count(),
+                'new_customers_this_month' => Customer::query()
+                    ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
+                    ->count(),
+            ],
+            'options' => [
+                'areas' => Area::query()
+                    ->where('is_active', true)
+                    ->orderBy('name')
+                    ->get(['id', 'name']),
             ],
         ]);
     }
 
     public function show(Customer $customer): Response
     {
-        $customer->load([
-            'sales' => fn ($query) => $query
-                ->with(['vehicle.brand', 'employee', 'area'])
-                ->latest('sale_date')
-                ->latest('id'),
-        ]);
+        $customer
+            ->loadCount('sales')
+            ->loadSum('sales as total_purchase', 'selling_price')
+            ->loadMax('sales', 'sale_date')
+            ->load([
+                'sales' => fn ($query) => $query
+                    ->with(['vehicle.brand', 'employee', 'area', 'payment.financingProvider'])
+                    ->latest('sale_date')
+                    ->latest('id'),
+            ]);
 
         return Inertia::render('Customers/Show', [
             'customer' => $this->detail($customer),
@@ -92,7 +125,9 @@ class CustomerController extends Controller
             'alternative_whatsapp' => $customer->alternative_whatsapp,
             'address' => $customer->address,
             'sales_count' => $customer->sales_count ?? 0,
+            'total_purchase' => (int) ($customer->total_purchase ?? 0),
             'last_sale_date' => $customer->sales_max_sale_date,
+            'latest_area' => $customer->sales->first()?->area?->name,
         ];
     }
 
@@ -111,9 +146,11 @@ class CustomerController extends Controller
                     'sale_date' => $sale->sale_date->toDateString(),
                     'vehicle' => trim(($sale->vehicle->brand?->name ?? '').' '.$sale->vehicle->type),
                     'plate_number' => $sale->vehicle->plate_number,
+                    'year' => $sale->vehicle->year,
                     'area' => $sale->area->name,
                     'employee' => $sale->employee->name,
                     'payment_type' => $sale->payment_type->value,
+                    'financing_provider' => $sale->payment?->financingProvider?->name,
                     'selling_price' => $sale->selling_price,
                 ])
                 ->values(),
