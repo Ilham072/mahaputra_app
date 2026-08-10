@@ -366,13 +366,14 @@ function BottomNavigation({
                         >
                             <span
                                 className={[
-                                    'mb-1 h-1.5 w-1.5 rounded-full',
+                                    'mb-1 flex h-8 w-8 items-center justify-center [&>svg]:h-7 [&>svg]:w-7',
                                     active
-                                        ? 'bg-brand-yellow-500'
-                                        : 'bg-transparent',
+                                        ? 'text-brand-yellow-700'
+                                        : 'text-neutral-500',
                                 ].join(' ')}
-                                aria-hidden="true"
-                            />
+                            >
+                                <NavIcon name={item.icon} />
+                            </span>
                             <span className="truncate">
                                 {item.shortLabel ?? item.label}
                             </span>
