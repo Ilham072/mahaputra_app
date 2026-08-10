@@ -5,6 +5,9 @@ export type SaleVehicleContext = {
     brand: string | null;
     type: string;
     plate_number: string;
+    year: number;
+    color: string;
+    capital_type: 'UMUM' | 'KHUSUS';
     asking_price: number;
     status: 'PREPARATION' | 'READY' | 'BOOKING' | 'SOLD';
     initial_capital: number;
@@ -15,6 +18,12 @@ export type SaleVehicleContext = {
 export type SaleOption = {
     id: number;
     name: string;
+};
+
+export type SaleCustomerOption = SaleOption & {
+    whatsapp: string;
+    alternative_whatsapp: string | null;
+    address: string;
 };
 
 export type SaleSummary = {
@@ -29,6 +38,20 @@ export type SaleSummary = {
     selling_price: number;
     final_capital_snapshot: number;
     profit_snapshot: number;
+};
+
+export type SaleVehicleSearchRow = {
+    id: number;
+    brand: string | null;
+    type: string;
+    plate_number: string;
+    year: number;
+    color: string;
+    capital_type: 'UMUM' | 'KHUSUS';
+    status: 'PREPARATION' | 'READY' | 'BOOKING' | 'SOLD';
+    asking_price: number;
+    sale_date: string | null;
+    can_sell: boolean;
 };
 
 export type SaleDetail = SaleSummary & {

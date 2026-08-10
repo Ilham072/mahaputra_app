@@ -10,6 +10,7 @@ use App\Enums\VehicleCostCategory;
 use App\Enums\VehicleStatus;
 use App\Enums\VehicleTaxStatus;
 use App\Models\Area;
+use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\FinancingProvider;
 use App\Models\User;
@@ -180,6 +181,71 @@ class SaleFlowTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_sales_index_is_vehicle_search_for_starting_sale(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $owner = User::factory()->create(['role' => UserRole::Owner->value]);
+        $vehicle = $this->createVehicle();
+
+        $this->actingAs($admin)
+            ->get(route('sales.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Sales/Index')
+                ->where('filters.search', '')
+                ->where('filters.can_search', false)
+                ->has('vehicles.data', 0)
+            );
+
+        $this->actingAs($admin)
+            ->get(route('sales.index', ['search' => 'DD 1234']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Sales/Index')
+                ->where('filters.search', 'DD 1234')
+                ->where('filters.can_search', true)
+                ->has('vehicles.data', 1)
+                ->where('vehicles.data.0.id', $vehicle->id)
+                ->where('vehicles.data.0.can_sell', true)
+            );
+
+        $this->actingAs($owner)
+            ->get(route('sales.index', ['search' => 'DD 1234']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('vehicles.data.0.can_sell', false)
+            );
+    }
+
+    public function test_sale_create_form_includes_customer_search_options_without_private_ktp_path(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+        $vehicle = $this->createVehicle();
+        $this->createSaleOptions();
+
+        Customer::query()->create([
+            'name' => 'Budi Santoso',
+            'whatsapp' => '081234567890',
+            'alternative_whatsapp' => '081299988877',
+            'address' => 'Jl. Veteran',
+            'ktp_file_path' => 'customers/private/ktp.jpg',
+            'ktp_original_name' => 'ktp-budi.jpg',
+            'ktp_mime_type' => 'image/jpeg',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('vehicles.sales.create', $vehicle))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Sales/Form')
+                ->has('options.customers', 1)
+                ->where('options.customers.0.name', 'Budi Santoso')
+                ->where('options.customers.0.whatsapp', '081234567890')
+                ->where('options.customers.0.address', 'Jl. Veteran')
+                ->missing('options.customers.0.ktp_file_path')
+            );
+    }
+
     public function test_sale_detail_and_private_ktp_download_are_authenticated(): void
     {
         Storage::fake('local');
@@ -259,7 +325,7 @@ class SaleFlowTest extends TestCase
             'plate_number' => 'DD 1234 XX',
             'year' => 2022,
             'color' => 'Hitam',
-            'capital_type' => VehicleCapitalType::Khusus->value,
+            'capital_type' => VehicleCapitalType::Umum->value,
             'showroom_capital' => 120000000,
             'tax_status' => VehicleTaxStatus::On->value,
             'tax_amount' => 1500000,

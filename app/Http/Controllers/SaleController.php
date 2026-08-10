@@ -8,6 +8,7 @@ use App\Enums\PaymentType;
 use App\Http\Requests\SaleRequest;
 use App\Http\Requests\UpdateSaleRequest;
 use App\Models\Area;
+use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\FinancingProvider;
 use App\Models\Sale;
@@ -28,15 +29,37 @@ class SaleController extends Controller
 
     public function index(Request $request): Response
     {
-        $sales = Sale::query()
-            ->with(['vehicle.brand', 'customer', 'employee', 'area'])
-            ->latest('sale_date')
+        $search = trim($request->string('search')->toString());
+        $canSearch = mb_strlen($search) >= 2;
+
+        $vehicles = Vehicle::query()
+            ->with(['brand', 'sale'])
+            ->when(! $canSearch, fn ($query) => $query->whereRaw('1 = 0'))
+            ->when($canSearch, function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query
+                        ->where('plate_number', 'like', "%{$search}%")
+                        ->orWhere('type', 'like', "%{$search}%")
+                        ->orWhereHas('brand', fn ($query) => $query->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->orderByRaw("case when status = 'SOLD' then 1 else 0 end")
+            ->latest('updated_at')
             ->paginate(15)
             ->withQueryString()
-            ->through(fn (Sale $sale): array => $this->summary($sale));
+            ->through(
+                fn (Vehicle $vehicle): array => $this->saleVehicleRow(
+                    $vehicle,
+                    $request->user()?->isAdmin() ?? false,
+                ),
+            );
 
         return Inertia::render('Sales/Index', [
-            'sales' => $sales,
+            'vehicles' => $vehicles,
+            'filters' => [
+                'search' => $search,
+                'can_search' => $canSearch,
+            ],
         ]);
     }
 
@@ -167,6 +190,9 @@ class SaleController extends Controller
             'brand' => $vehicle->brand?->name,
             'type' => $vehicle->type,
             'plate_number' => $vehicle->plate_number,
+            'year' => $vehicle->year,
+            'color' => $vehicle->color,
+            'capital_type' => $vehicle->capital_type->value,
             'asking_price' => $vehicle->asking_price,
             'status' => $vehicle->status->value,
             'initial_capital' => $initialCapital,
@@ -182,6 +208,18 @@ class SaleController extends Controller
     {
         return [
             'areas' => Area::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'customers' => Customer::query()
+                ->latest('updated_at')
+                ->limit(50)
+                ->get(['id', 'name', 'whatsapp', 'alternative_whatsapp', 'address'])
+                ->map(fn (Customer $customer): array => [
+                    'id' => $customer->id,
+                    'name' => $customer->name,
+                    'whatsapp' => $customer->whatsapp,
+                    'alternative_whatsapp' => $customer->alternative_whatsapp,
+                    'address' => $customer->address,
+                ])
+                ->values(),
             'employees' => Employee::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'financingProviders' => FinancingProvider::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'paymentTypes' => collect(PaymentType::cases())
@@ -210,6 +248,26 @@ class SaleController extends Controller
             'selling_price' => $sale->selling_price,
             'final_capital_snapshot' => $sale->final_capital_snapshot,
             'profit_snapshot' => $sale->profit_snapshot,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function saleVehicleRow(Vehicle $vehicle, bool $isAdmin): array
+    {
+        return [
+            'id' => $vehicle->id,
+            'brand' => $vehicle->brand?->name,
+            'type' => $vehicle->type,
+            'plate_number' => $vehicle->plate_number,
+            'year' => $vehicle->year,
+            'color' => $vehicle->color,
+            'capital_type' => $vehicle->capital_type->value,
+            'status' => $vehicle->status->value,
+            'asking_price' => $vehicle->asking_price,
+            'sale_date' => $vehicle->sale?->sale_date?->toDateString(),
+            'can_sell' => $isAdmin && $vehicle->sale === null,
         ];
     }
 

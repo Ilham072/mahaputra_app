@@ -1,11 +1,9 @@
 import Button from '@/Components/Button';
-import { Card, CardContent, CardTitle } from '@/Components/Card';
+import { Card } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
 import DataTable, { type DataTableColumn } from '@/Components/DataTable';
 import EmptyState from '@/Components/EmptyState';
-import KpiCard from '@/Components/KpiCard';
 import PageHeader from '@/Components/PageHeader';
-import SelectInput from '@/Components/SelectInput';
 import StatusBadge from '@/Components/StatusBadge';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -68,31 +66,24 @@ export default function ReportsIndex({
     filters,
     summary,
     sales,
-    operations,
-    options,
 }: ReportProps) {
     const [filterData, setFilterData] = useState(filters);
     const [pdfPayload, setPdfPayload] = useState<ReportPdfPayload | null>(null);
     const [pdfLoading, setPdfLoading] = useState(false);
     const [pdfError, setPdfError] = useState<string | null>(null);
+
+    const averageProfit =
+        summary.sales_count > 0
+            ? Math.round(summary.profit_total / summary.sales_count)
+            : 0;
+    const monthValue = filterData.date_from.slice(0, 7);
+
     const saleColumns: Array<DataTableColumn<SaleReportRow>> = [
         {
             key: 'sale_date',
             header: 'Tanggal',
-            cellClassName: 'whitespace-nowrap',
-            cell: (sale) => sale.sale_date,
-        },
-        {
-            key: 'area',
-            header: 'Area',
-            cellClassName: 'whitespace-nowrap',
-            cell: (sale) => sale.area,
-        },
-        {
-            key: 'employee',
-            header: 'PIC',
-            cellClassName: 'whitespace-nowrap',
-            cell: (sale) => sale.employee,
+            cellClassName: 'whitespace-nowrap text-neutral-500',
+            cell: (sale) => formatDate(sale.sale_date),
         },
         {
             key: 'vehicle',
@@ -101,33 +92,52 @@ export default function ReportsIndex({
             cell: (sale) => (
                 <>
                     {sale.vehicle}
-                    <div className="text-xs text-neutral-500">
-                        {sale.plate_number}
-                    </div>
-                    <div className="text-xs text-neutral-500">
-                        Beli {sale.purchase_date}
+                    <div className="text-xs font-normal text-neutral-500">
+                        {sale.plate_number} · {sale.year}
                     </div>
                 </>
             ),
         },
         {
-            key: 'year',
-            header: 'Tahun',
-            cellClassName: 'whitespace-nowrap',
-            cell: (sale) => sale.year,
+            key: 'customer',
+            header: 'Pembeli',
+            cell: (sale) => (
+                <>
+                    <span className="font-medium text-neutral-950">
+                        {sale.customer_name}
+                    </span>
+                    <div className="text-xs text-neutral-500">
+                        {sale.customer_whatsapp}
+                    </div>
+                </>
+            ),
         },
         {
-            key: 'capital_type',
-            header: 'Modal',
+            key: 'area_pic',
+            header: 'Area / PIC',
             cell: (sale) => (
-                <StatusBadge type="capital" value={sale.capital_type} />
+                <>
+                    <span className="font-medium text-neutral-950">
+                        {sale.area}
+                    </span>
+                    <div className="text-xs text-neutral-500">
+                        {sale.employee}
+                    </div>
+                </>
             ),
         },
         {
             key: 'payment_type',
-            header: 'Bayar',
+            header: 'Pembayaran',
             cell: (sale) => (
-                <StatusBadge type="payment" value={sale.payment_type} />
+                <>
+                    <StatusBadge type="payment" value={sale.payment_type} />
+                    {sale.financing_provider && (
+                        <div className="mt-1 text-xs text-neutral-500">
+                            {sale.financing_provider}
+                        </div>
+                    )}
+                </>
             ),
         },
         {
@@ -138,103 +148,61 @@ export default function ReportsIndex({
             cell: (sale) => <CurrencyDisplay value={sale.selling_price} />,
         },
         {
-            key: 'dp',
-            header: 'DP',
-            align: 'right',
-            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
-            cell: (sale) => <CurrencyDisplay value={sale.dp} />,
-        },
-        {
-            key: 'outstanding_dp',
-            header: 'DP Terutang',
-            align: 'right',
-            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
-            cell: (sale) => <CurrencyDisplay value={sale.outstanding_dp} />,
-        },
-        {
-            key: 'initial_capital_snapshot',
-            header: 'Modal Awal',
-            align: 'right',
-            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
-            cell: (sale) => (
-                <CurrencyDisplay value={sale.initial_capital_snapshot} />
-            ),
-        },
-        {
-            key: 'vehicle_cost_snapshot',
-            header: 'Total Biaya Kendaraan',
-            align: 'right',
-            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
-            cell: (sale) => (
-                <CurrencyDisplay value={sale.vehicle_cost_snapshot} />
-            ),
-        },
-        {
-            key: 'final_capital_snapshot',
-            header: 'Modal Akhir',
-            align: 'right',
-            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
-            cell: (sale) => (
-                <CurrencyDisplay value={sale.final_capital_snapshot} />
-            ),
-        },
-        {
             key: 'profit_snapshot',
             header: 'Laba',
             align: 'right',
-            cellClassName: 'whitespace-nowrap font-semibold text-neutral-950',
+            cellClassName: 'whitespace-nowrap font-semibold text-green-700',
             cell: (sale) => <CurrencyDisplay value={sale.profit_snapshot} />,
         },
         {
             key: 'actions',
             header: '',
             align: 'right',
+            cellClassName: 'whitespace-nowrap',
             cell: (sale) => (
                 <Link href={route('sales.show', sale.id)}>
                     <Button type="button" variant="outline" size="sm">
-                        Detail
+                        Lihat Detail
                     </Button>
                 </Link>
             ),
         },
     ];
+
     const summaryCards: Array<{
         label: string;
         value: ReactNode;
         caption: string;
+        accent?: boolean;
     }> = [
         {
-            label: 'Transaksi',
-            value: summary.sales_count,
-            caption: 'Penjualan sesuai filter',
+            label: 'Total Transaksi',
+            value: `${summary.sales_count} transaksi`,
+            caption: 'Sesuai filter aktif',
         },
         {
             label: 'Nilai Penjualan',
             value: <CurrencyDisplay value={summary.sales_value} />,
-            caption: 'Cash memakai harga jual, kredit memakai total kredit',
+            caption: 'Sesuai filter aktif',
         },
         {
             label: 'Laba Kendaraan',
             value: <CurrencyDisplay value={summary.profit_total} />,
-            caption: 'Berdasarkan snapshot transaksi',
+            caption: 'Sesuai filter aktif',
+            accent: true,
         },
         {
-            label: 'Operasional',
-            value: <CurrencyDisplay value={summary.operational_total} />,
-            caption: 'Biaya operasional periode',
-        },
-        {
-            label: 'Selisih Laba - Operasional',
-            value: <CurrencyDisplay value={summary.profit_minus_operational} />,
-            caption: 'Bukan formula final keuntungan perusahaan',
+            label: 'Rata-rata Laba/Unit',
+            value: <CurrencyDisplay value={averageProfit} />,
+            caption: 'Sesuai filter aktif',
         },
     ];
 
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
-
         setPdfPayload(null);
         setPdfError(null);
+
         router.get(route('reports.index'), filterData, {
             preserveState: true,
             replace: true,
@@ -245,9 +213,9 @@ export default function ReportsIndex({
         const cleared = {
             ...filters,
             search: '',
+            payment_type: '',
             area_id: '',
             employee_id: '',
-            payment_type: '',
             capital_type: '',
         };
 
@@ -255,6 +223,27 @@ export default function ReportsIndex({
         setPdfPayload(null);
         setPdfError(null);
         router.get(route('reports.index'), cleared, { replace: true });
+    };
+
+    const setMonth = (value: string) => {
+        if (!value) {
+            return;
+        }
+
+        setFilterData({
+            ...filterData,
+            date_from: `${value}-01`,
+            date_to: monthEndDate(value),
+        });
+        setPdfPayload(null);
+    };
+
+    const setPaymentType = (paymentType: string) => {
+        setFilterData({
+            ...filterData,
+            payment_type: paymentType,
+        });
+        setPdfPayload(null);
     };
 
     const loadPdfData = async () => {
@@ -277,47 +266,27 @@ export default function ReportsIndex({
         <AuthenticatedLayout
             header={
                 <PageHeader
-                    title="Laporan"
-                    description="Rekap penjualan, kendaraan, operasional, dan laba"
+                    title="Rekap Penjualan"
+                    description="Rekapitulasi penjualan per periode"
                 />
             }
         >
-            <Head title="Laporan" />
+            <Head title="Rekap Penjualan" />
 
             <div className="space-y-5 lg:space-y-6">
+                <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    {summaryCards.map((item) => (
+                        <SummaryCard key={item.label} {...item} />
+                    ))}
+                </section>
+
                 <Card className="p-4 sm:p-5">
-                    <form
-                        onSubmit={submit}
-                        className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_minmax(220px,1.3fr)_1fr_1fr_1fr_1fr_auto_auto]"
-                    >
-                        <FilterField label="Dari Tanggal">
-                            <TextInput
-                                type="date"
-                                value={filterData.date_from}
-                                onChange={(event) =>
-                                    setFilterData({
-                                        ...filterData,
-                                        date_from: event.target.value,
-                                    })
-                                }
-                            />
-                        </FilterField>
-                        <FilterField label="Sampai Tanggal">
-                            <TextInput
-                                type="date"
-                                value={filterData.date_to}
-                                onChange={(event) =>
-                                    setFilterData({
-                                        ...filterData,
-                                        date_to: event.target.value,
-                                    })
-                                }
-                            />
-                        </FilterField>
-                        <FilterField label="Pencarian">
+                    <form onSubmit={submit} className="space-y-3">
+                        <label className="relative block">
+                            <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
                             <TextInput
                                 type="search"
-                                placeholder="Kendaraan, polisi, pembeli"
+                                placeholder="Cari kendaraan, nomor polisi, atau pembeli..."
                                 value={filterData.search}
                                 onChange={(event) =>
                                     setFilterData({
@@ -325,199 +294,155 @@ export default function ReportsIndex({
                                         search: event.target.value,
                                     })
                                 }
+                                className="h-12 pl-12"
                             />
-                        </FilterField>
-                        <FilterField label="Area">
-                            <Select
-                                value={filterData.area_id}
-                                onChange={(value) =>
-                                    setFilterData({
-                                        ...filterData,
-                                        area_id: value,
-                                    })
-                                }
-                            >
-                                <option value="">Semua Area</option>
-                                {options.areas.map((area) => (
-                                    <option key={area.id} value={area.id}>
-                                        {area.name}
-                                    </option>
-                                ))}
-                            </Select>
-                        </FilterField>
-                        <FilterField label="PIC">
-                            <Select
-                                value={filterData.employee_id}
-                                onChange={(value) =>
-                                    setFilterData({
-                                        ...filterData,
-                                        employee_id: value,
-                                    })
-                                }
-                            >
-                                <option value="">Semua PIC</option>
-                                {options.employees.map((employee) => (
-                                    <option key={employee.id} value={employee.id}>
-                                        {employee.name}
-                                    </option>
-                                ))}
-                            </Select>
-                        </FilterField>
-                        <FilterField label="Pembayaran">
-                            <Select
-                                value={filterData.payment_type}
-                                onChange={(value) =>
-                                    setFilterData({
-                                        ...filterData,
-                                        payment_type: value,
-                                    })
-                                }
-                            >
-                                <option value="">Semua Bayar</option>
-                                {options.paymentTypes.map((type) => (
-                                    <option key={type.value} value={type.value}>
-                                        {type.label}
-                                    </option>
-                                ))}
-                            </Select>
-                        </FilterField>
-                        <FilterField label="Tipe Modal">
-                            <Select
-                                value={filterData.capital_type}
-                                onChange={(value) =>
-                                    setFilterData({
-                                        ...filterData,
-                                        capital_type: value,
-                                    })
-                                }
-                            >
-                                <option value="">UMUM/KHUSUS</option>
-                                {options.capitalTypes.map((type) => (
-                                    <option key={type.value} value={type.value}>
-                                        {type.label}
-                                    </option>
-                                ))}
-                            </Select>
-                        </FilterField>
-                        <div className="flex items-end">
-                            <Button type="submit" variant="secondary" className="w-full">
-                                Filter
-                            </Button>
-                        </div>
-                        <div className="flex items-end">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full"
-                                onClick={clearFilters}
-                            >
-                                Bersihkan
-                            </Button>
+                        </label>
+
+                        <TextInput
+                            type="month"
+                            value={monthValue}
+                            onChange={(event) => setMonth(event.target.value)}
+                            className="h-12"
+                        />
+
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-wrap gap-2">
+                                <PaymentFilterButton
+                                    active={filterData.payment_type === ''}
+                                    onClick={() => setPaymentType('')}
+                                >
+                                    Semua
+                                </PaymentFilterButton>
+                                <PaymentFilterButton
+                                    active={filterData.payment_type === 'CASH'}
+                                    onClick={() => setPaymentType('CASH')}
+                                >
+                                    Cash
+                                </PaymentFilterButton>
+                                <PaymentFilterButton
+                                    active={filterData.payment_type === 'CREDIT'}
+                                    onClick={() => setPaymentType('CREDIT')}
+                                >
+                                    Kredit
+                                </PaymentFilterButton>
+                            </div>
+
+                            <div className="flex gap-2 sm:justify-end">
+                                <Button type="submit" variant="secondary">
+                                    <FilterIcon className="h-4 w-4" />
+                                    Filter
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={clearFilters}
+                                >
+                                    Bersihkan
+                                </Button>
+                            </div>
                         </div>
                     </form>
                 </Card>
 
-                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                    {summaryCards.map((item) => (
-                        <KpiCard
-                            key={item.label}
-                            label={item.label}
-                            value={item.value}
-                            caption={item.caption}
+                <Card>
+                    <div className="flex flex-col gap-3 border-b border-neutral-200 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                        <p className="text-sm text-neutral-500">
+                            <span className="font-semibold text-neutral-950">
+                                {summary.sales_count}
+                            </span>{' '}
+                            transaksi ditemukan
+                        </p>
+                        <div className="flex flex-wrap gap-2 sm:justify-end">
+                            <PdfExportButton
+                                payload={pdfPayload}
+                                isLoading={pdfLoading}
+                                error={pdfError}
+                                onPrepare={loadPdfData}
+                                disabled={summary.sales_count === 0}
+                            />
+                            <a
+                                className={exportLinkClasses()}
+                                href={route('reports.export.excel', filterData)}
+                            >
+                                Export Excel
+                            </a>
+                        </div>
+                    </div>
+
+                    {sales.data.length === 0 ? (
+                        <div className="p-5">
+                            <EmptyState
+                                title="Belum ada transaksi."
+                                description="Ubah filter atau buat transaksi penjualan terlebih dahulu."
+                            />
+                        </div>
+                    ) : (
+                        <DataTable
+                            rows={sales.data}
+                            columns={saleColumns}
+                            getRowKey={(sale) => sale.id}
+                            minWidth="min-w-[1120px] lg:min-w-full"
                         />
-                    ))}
-                </section>
-
-                <div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-                    <Card>
-                        <CardContent className="p-0">
-                            <div className="flex flex-col gap-3 border-b border-neutral-200 p-5 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <CardTitle>Rekap Penjualan</CardTitle>
-                                    <p className="mt-1 text-sm text-neutral-500">
-                                        Preview laporan berdasarkan filter aktif.
-                                    </p>
-                                </div>
-                                <div className="flex flex-wrap gap-2 sm:justify-end">
-                                    <PdfExportButton
-                                        payload={pdfPayload}
-                                        isLoading={pdfLoading}
-                                        error={pdfError}
-                                        onPrepare={loadPdfData}
-                                        disabled={summary.sales_count === 0}
-                                    />
-                                    <a
-                                        className={exportLinkClasses()}
-                                        href={route('reports.export.excel', filterData)}
-                                    >
-                                        Excel
-                                    </a>
-                                </div>
-                            </div>
-
-                            {sales.data.length === 0 ? (
-                                <div className="p-5">
-                                    <EmptyState
-                                        title="Belum ada data laporan."
-                                        description="Ubah filter tanggal atau buat transaksi penjualan terlebih dahulu."
-                                    />
-                                </div>
-                            ) : (
-                                <DataTable
-                                    rows={sales.data}
-                                    columns={saleColumns}
-                                    getRowKey={(sale) => sale.id}
-                                    minWidth="min-w-[1200px] sm:min-w-[1320px]"
-                                />
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="p-0">
-                            <div className="border-b border-neutral-200 p-5">
-                                <CardTitle>Operasional Periode</CardTitle>
-                                <CurrencyDisplay
-                                    value={operations.total}
-                                    className="mt-3 block text-2xl font-bold text-neutral-950"
-                                />
-                            </div>
-                            {operations.recent.length === 0 ? (
-                                <div className="p-5">
-                                    <EmptyState title="Tidak ada biaya operasional pada periode ini." />
-                                </div>
-                            ) : (
-                                <div className="divide-y divide-neutral-200">
-                                    {operations.recent.map((expense) => (
-                                        <div key={expense.id} className="p-4">
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div className="min-w-0">
-                                                    <div className="text-sm font-semibold text-neutral-950">
-                                                        {expense.category ?? 'Tanpa kategori'}
-                                                    </div>
-                                                    <div className="mt-1 text-xs text-neutral-500">
-                                                        {expense.transaction_date}
-                                                    </div>
-                                                </div>
-                                                <CurrencyDisplay
-                                                    value={expense.amount}
-                                                    className="shrink-0 text-sm font-semibold text-neutral-950"
-                                                />
-                                            </div>
-                                            {expense.description && (
-                                                <p className="mt-2 text-sm text-neutral-600">
-                                                    {expense.description}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
+                    )}
+                </Card>
             </div>
         </AuthenticatedLayout>
+    );
+}
+
+function SummaryCard({
+    label,
+    value,
+    caption,
+    accent = false,
+}: {
+    label: string;
+    value: ReactNode;
+    caption: string;
+    accent?: boolean;
+}) {
+    return (
+        <Card
+            className={cn(
+                'min-h-36 p-5',
+                accent ? 'border-l-4 border-l-brand-yellow-500' : '',
+            )}
+        >
+            <div className="text-xs font-bold uppercase text-neutral-500">
+                {label}
+            </div>
+            <div className="mt-4 text-2xl font-bold tracking-normal text-neutral-950">
+                {value}
+            </div>
+            <div className="mt-4 text-sm font-medium text-brand-yellow-700">
+                {caption}
+            </div>
+        </Card>
+    );
+}
+
+function PaymentFilterButton({
+    active,
+    onClick,
+    children,
+}: {
+    active: boolean;
+    onClick: () => void;
+    children: string;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={cn(
+                'inline-flex h-10 items-center rounded-md border px-4 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2',
+                active
+                    ? 'border-brand-black bg-brand-black text-white'
+                    : 'border-neutral-200 bg-surface text-neutral-700 hover:bg-neutral-50',
+            )}
+        >
+            {children}
+        </button>
     );
 }
 
@@ -538,7 +463,11 @@ function PdfExportButton({
         return (
             <Suspense
                 fallback={
-                    <span className={exportLinkClasses('pointer-events-none opacity-70')}>
+                    <span
+                        className={exportLinkClasses(
+                            'pointer-events-none opacity-70',
+                        )}
+                    >
                         Menyiapkan PDF
                     </span>
                 }
@@ -561,7 +490,7 @@ function PdfExportButton({
                 disabled={disabled || isLoading}
                 isLoading={isLoading}
             >
-                PDF
+                Export PDF
             </Button>
             {error && <span className="text-xs text-red-600">{error}</span>}
         </div>
@@ -576,38 +505,55 @@ function exportLinkClasses(className?: string) {
     );
 }
 
-function FilterField({
-    label,
-    children,
-}: {
-    label: string;
-    children: ReactNode;
-}) {
+function monthEndDate(value: string) {
+    const [year, month] = value.split('-').map(Number);
+    const endDate = new Date(year, month, 0);
+    const day = String(endDate.getDate()).padStart(2, '0');
+
+    return `${value}-${day}`;
+}
+
+function formatDate(value: string) {
+    return new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    }).format(new Date(`${value}T00:00:00`));
+}
+
+function SearchIcon({ className = '' }: { className?: string }) {
     return (
-        <label className="block min-w-0">
-            <span className="mb-1 block text-xs font-semibold text-neutral-600">
-                {label}
-            </span>
-            {children}
-        </label>
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+        </svg>
     );
 }
 
-function Select({
-    value,
-    onChange,
-    children,
-}: {
-    value: string;
-    onChange: (value: string) => void;
-    children: ReactNode;
-}) {
+function FilterIcon({ className = '' }: { className?: string }) {
     return (
-        <SelectInput
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
         >
-            {children}
-        </SelectInput>
+            <path d="M4 6h16" />
+            <path d="M7 12h10" />
+            <path d="M10 18h4" />
+        </svg>
     );
 }

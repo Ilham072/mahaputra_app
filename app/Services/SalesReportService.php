@@ -55,7 +55,7 @@ class SalesReportService
     public function query(array $filters): Builder
     {
         return Sale::query()
-            ->with(['vehicle.brand', 'customer', 'employee', 'area', 'payment'])
+            ->with(['vehicle.brand', 'customer', 'employee', 'area', 'payment.financingProvider'])
             ->whereBetween('sale_date', [$filters['date_from'], $filters['date_to']])
             ->when($filters['search'] !== '', function (Builder $query) use ($filters): void {
                 $search = $filters['search'];
@@ -163,12 +163,15 @@ class SalesReportService
             'sale_date' => $sale->sale_date->toDateString(),
             'area' => $sale->area->name,
             'employee' => $sale->employee->name,
+            'customer_name' => $sale->customer->name,
+            'customer_whatsapp' => $sale->customer->whatsapp,
             'vehicle' => trim(($sale->vehicle->brand?->name ?? '').' '.$sale->vehicle->type),
             'plate_number' => $sale->vehicle->plate_number,
             'year' => $sale->vehicle->year,
             'capital_type' => $sale->vehicle->capital_type->value,
             'purchase_date' => $sale->vehicle->purchase_date->toDateString(),
             'payment_type' => $sale->payment_type->value,
+            'financing_provider' => $sale->payment?->financingProvider?->name,
             'selling_price' => $sale->selling_price,
             'credit_total' => $sale->credit_total,
             'dp' => $sale->payment?->dp ?? 0,

@@ -44,6 +44,12 @@ const navigation: NavSection[] = [
                 shortLabel: 'Jual',
             },
             {
+                label: 'Rekap Penjualan',
+                href: '/reports',
+                icon: 'chart',
+                shortLabel: 'Rekap',
+            },
+            {
                 label: 'Customer',
                 href: '/customers',
                 icon: 'users',
@@ -53,17 +59,6 @@ const navigation: NavSection[] = [
                 href: '/operations',
                 icon: 'wallet',
                 shortLabel: 'Operasi',
-            },
-        ],
-    },
-    {
-        label: 'Laporan',
-        items: [
-            {
-                label: 'Laporan',
-                href: '/reports',
-                icon: 'file',
-                shortLabel: 'Laporan',
             },
         ],
     },
@@ -122,8 +117,14 @@ function routeMatches(currentUrl: string, href: string) {
 }
 
 function activeHrefFor(items: NavItem[], currentUrl: string) {
+    const path = currentUrl.split('?')[0];
+
+    if (/^\/vehicles\/[^/]+\/sell$/.test(path)) {
+        return '/sales';
+    }
+
     return items
-        .filter((item) => routeMatches(currentUrl, item.href))
+        .filter((item) => routeMatches(path, item.href))
         .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 }
 
@@ -189,6 +190,15 @@ function NavIcon({ name }: { name: string }) {
                 <path d="M9 8h6" />
                 <path d="M9 12h6" />
                 <path d="M9 16h4" />
+            </>
+        ),
+        chart: (
+            <>
+                <path d="M4 19V5" />
+                <path d="M4 19h16" />
+                <path d="M8 16v-5" />
+                <path d="M12 16V8" />
+                <path d="M16 16v-8" />
             </>
         ),
         users: (

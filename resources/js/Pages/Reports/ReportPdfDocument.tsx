@@ -11,12 +11,15 @@ export type SaleReportRow = {
     sale_date: string;
     area: string;
     employee: string;
+    customer_name: string;
+    customer_whatsapp: string;
     vehicle: string;
     plate_number: string;
     year: number;
     capital_type: 'UMUM' | 'KHUSUS';
     purchase_date: string;
     payment_type: 'CASH' | 'CREDIT';
+    financing_provider: string | null;
     selling_price: number;
     credit_total: number;
     dp: number;
