@@ -55,10 +55,13 @@ export default function CustomerShow({ customer }: CustomerShowProps) {
                 header: 'Aksi',
                 align: 'right',
                 cell: (sale) => (
-                    <Link href={route('sales.show', sale.id)}>
-                        <Button type="button" variant="outline" size="sm">
-                            Detail
-                        </Button>
+                    <Link
+                        href={route('sales.show', sale.id)}
+                        aria-label={`Lihat detail transaksi ${sale.vehicle}`}
+                        title={`Lihat detail transaksi ${sale.vehicle}`}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-surface text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
+                    >
+                        <EyeIcon className="h-4 w-4" />
                     </Link>
                 ),
             },
@@ -257,10 +260,13 @@ function PurchaseCard({ sale }: { sale: CustomerDetail['sales'][number] }) {
                     </div>
                     <VehicleCell sale={sale} />
                 </div>
-                <Link href={route('sales.show', sale.id)}>
-                    <Button type="button" variant="outline" size="sm">
-                        Detail
-                    </Button>
+                <Link
+                    href={route('sales.show', sale.id)}
+                    aria-label={`Lihat detail transaksi ${sale.vehicle}`}
+                    title={`Lihat detail transaksi ${sale.vehicle}`}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-surface text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
+                >
+                    <EyeIcon className="h-4 w-4" />
                 </Link>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
@@ -386,4 +392,22 @@ function formatDate(value: string | null) {
         month: 'short',
         year: 'numeric',
     }).format(new Date(value));
+}
+
+function EyeIcon({ className = '' }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+            <circle cx="12" cy="12" r="3" />
+        </svg>
+    );
 }

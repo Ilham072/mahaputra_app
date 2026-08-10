@@ -52,11 +52,13 @@ const Trigger = ({ children }: PropsWithChildren) => {
 
 const Content = ({
     align = 'right',
+    placement = 'bottom',
     width = '48',
     contentClasses = 'py-1 bg-surface',
     children,
 }: PropsWithChildren<{
     align?: 'left' | 'right';
+    placement?: 'bottom' | 'top';
     width?: '48';
     contentClasses?: string;
 }>) => {
@@ -76,6 +78,11 @@ const Content = ({
         widthClasses = 'w-48';
     }
 
+    const placementClasses =
+        placement === 'top'
+            ? 'bottom-full mb-2'
+            : 'top-full mt-2';
+
     return (
         <>
             <Transition
@@ -88,7 +95,7 @@ const Content = ({
                 leaveTo="opacity-0 scale-95"
             >
                 <div
-                    className={`absolute z-50 mt-2 rounded-md shadow-floating ${alignmentClasses} ${widthClasses}`}
+                    className={`absolute z-50 rounded-md shadow-floating ${placementClasses} ${alignmentClasses} ${widthClasses}`}
                     onClick={() => setOpen(false)}
                 >
                     <div

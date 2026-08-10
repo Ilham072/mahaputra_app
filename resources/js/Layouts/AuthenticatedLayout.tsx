@@ -66,32 +66,8 @@ const navigation: NavSection[] = [
         label: 'Master Data',
         items: [
             {
-                label: 'Karyawan',
-                href: '/master/employees',
-                icon: 'user',
-                adminOnly: true,
-            },
-            {
-                label: 'Area',
-                href: '/master/areas',
-                icon: 'pin',
-                adminOnly: true,
-            },
-            {
-                label: 'Merk Kendaraan',
-                href: '/master/vehicle-brands',
-                icon: 'tag',
-                adminOnly: true,
-            },
-            {
-                label: 'Pembiayaan',
-                href: '/master/financing-providers',
-                icon: 'bank',
-                adminOnly: true,
-            },
-            {
-                label: 'Kategori Operasional',
-                href: '/master/expense-categories',
+                label: 'Master Data',
+                href: '/master-data',
                 icon: 'folder',
                 adminOnly: true,
             },
@@ -121,6 +97,10 @@ function activeHrefFor(items: NavItem[], currentUrl: string) {
 
     if (/^\/vehicles\/[^/]+\/sell$/.test(path)) {
         return '/sales';
+    }
+
+    if (path.startsWith('/master/')) {
+        return '/master-data';
     }
 
     return items

@@ -2,7 +2,6 @@ import Button from '@/Components/Button';
 import { Card, CardContent } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
 import DataTable, { type DataTableColumn } from '@/Components/DataTable';
-import Dropdown from '@/Components/Dropdown';
 import EmptyState from '@/Components/EmptyState';
 import FormField from '@/Components/FormField';
 import KpiCard from '@/Components/KpiCard';
@@ -604,25 +603,16 @@ function ExpenseMobileCard({ expense }: { expense: Expense }) {
 
 function ExpenseActions({ expense }: { expense: Expense }) {
     return (
-        <Dropdown>
-            <Dropdown.Trigger>
-                <button
-                    type="button"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-surface text-lg font-bold leading-none text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
-                    aria-label={`Aksi pengeluaran ${expense.id}`}
-                >
-                    ...
-                </button>
-            </Dropdown.Trigger>
-            <Dropdown.Content>
-                <a
-                    href={expense.proof_download_url}
-                    className="block w-full px-4 py-2 text-start text-sm leading-5 text-neutral-700 transition duration-150 ease-in-out hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
-                >
-                    Lihat Bukti
-                </a>
-            </Dropdown.Content>
-        </Dropdown>
+        <div className="flex justify-end gap-2">
+            <a
+                href={expense.proof_download_url}
+                aria-label={`Lihat bukti pengeluaran ${expense.id}`}
+                title={`Lihat bukti pengeluaran ${expense.id}`}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-surface text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
+            >
+                <ProofIcon className="h-4 w-4" />
+            </a>
+        </div>
     );
 }
 
@@ -735,6 +725,26 @@ function UploadIcon({ className = '' }: { className?: string }) {
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <path d="M17 8 12 3 7 8" />
             <path d="M12 3v12" />
+        </svg>
+    );
+}
+
+function ProofIcon({ className = '' }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <path d="M6 3h9l3 3v15H6z" />
+            <path d="M14 3v4h4" />
+            <path d="M9 13h6" />
+            <path d="M9 17h4" />
         </svg>
     );
 }

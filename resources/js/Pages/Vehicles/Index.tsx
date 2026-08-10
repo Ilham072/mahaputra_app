@@ -3,7 +3,6 @@ import { Card } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
 import DataTable from '@/Components/DataTable';
 import type { DataTableColumn } from '@/Components/DataTable';
-import Dropdown from '@/Components/Dropdown';
 import EmptyState from '@/Components/EmptyState';
 import FormField from '@/Components/FormField';
 import PageHeader from '@/Components/PageHeader';
@@ -135,7 +134,7 @@ export default function VehicleIndex({
             align: 'right',
             cellClassName: 'overflow-visible whitespace-nowrap',
             cell: (vehicle) => (
-                <VehicleActionDropdown vehicle={vehicle} isAdmin={isAdmin} />
+                <VehicleActions vehicle={vehicle} isAdmin={isAdmin} />
             ),
         },
     ];
@@ -360,7 +359,7 @@ export default function VehicleIndex({
     );
 }
 
-function VehicleActionDropdown({
+function VehicleActions({
     vehicle,
     isAdmin,
 }: {
@@ -370,87 +369,57 @@ function VehicleActionDropdown({
     const canSell = isAdmin && vehicle.status !== 'SOLD';
 
     return (
-        <div className="flex justify-end">
-            <Dropdown>
-                <Dropdown.Trigger>
-                    <button
-                        type="button"
-                        className="inline-flex min-h-9 items-center gap-2 rounded-md border border-neutral-300 bg-surface px-3 py-2 text-sm font-medium text-neutral-900 shadow-sm transition hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:ring-offset-2"
-                    >
-                        Aksi
-                        <ChevronDownIcon className="h-4 w-4 text-neutral-500" />
-                    </button>
-                </Dropdown.Trigger>
-
-                <Dropdown.Content
-                    align="right"
-                    contentClasses="bg-surface py-1"
+        <div className="flex justify-end gap-2">
+            <IconActionLink
+                href={route('vehicles.show', vehicle.id)}
+                label={`Lihat detail ${vehicle.plate_number}`}
+            >
+                <EyeIcon className="h-4 w-4" />
+            </IconActionLink>
+            {isAdmin && (
+                <IconActionLink
+                    href={route('vehicles.edit', vehicle.id)}
+                    label={`Edit kendaraan ${vehicle.plate_number}`}
                 >
-                    <ActionDropdownLink href={route('vehicles.show', vehicle.id)}>
-                        <EyeIcon className="h-4 w-4 text-neutral-500" />
-                        <span>Lihat Detail</span>
-                    </ActionDropdownLink>
-
-                    {isAdmin && (
-                        <ActionDropdownLink
-                            href={route('vehicles.edit', vehicle.id)}
-                        >
-                            <EditIcon className="h-4 w-4 text-neutral-500" />
-                            <span>Edit Kendaraan</span>
-                        </ActionDropdownLink>
-                    )}
-
-                    {canSell && (
-                        <ActionDropdownLink
-                            href={route('vehicles.sales.create', vehicle.id)}
-                            className="text-neutral-950"
-                        >
-                            <SellIcon className="h-4 w-4 text-brand-yellow" />
-                            <span>Jual Kendaraan</span>
-                        </ActionDropdownLink>
-                    )}
-                </Dropdown.Content>
-            </Dropdown>
+                    <EditIcon className="h-4 w-4" />
+                </IconActionLink>
+            )}
+            {canSell && (
+                <IconActionLink
+                    href={route('vehicles.sales.create', vehicle.id)}
+                    label={`Jual kendaraan ${vehicle.plate_number}`}
+                    className="text-brand-yellow-700 hover:bg-brand-yellow-50 hover:text-brand-yellow-800"
+                >
+                    <SellIcon className="h-4 w-4" />
+                </IconActionLink>
+            )}
         </div>
     );
 }
 
-function ActionDropdownLink({
+function IconActionLink({
     href,
+    label,
     className = '',
     children,
 }: {
     href: string;
+    label: string;
     className?: string;
     children: ReactNode;
 }) {
     return (
-        <Dropdown.Link
+        <Link
             href={href}
+            aria-label={label}
+            title={label}
             className={[
-                'flex items-center gap-3 px-4 py-2.5 text-sm font-medium',
+                'inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-surface text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2',
                 className,
             ].join(' ')}
         >
             {children}
-        </Dropdown.Link>
-    );
-}
-
-function ChevronDownIcon({ className = '' }: { className?: string }) {
-    return (
-        <svg
-            aria-hidden="true"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className={className}
-        >
-            <path
-                fillRule="evenodd"
-                d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z"
-                clipRule="evenodd"
-            />
-        </svg>
+        </Link>
     );
 }
 

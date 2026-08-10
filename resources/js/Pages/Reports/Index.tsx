@@ -160,10 +160,13 @@ export default function ReportsIndex({
             align: 'right',
             cellClassName: 'whitespace-nowrap',
             cell: (sale) => (
-                <Link href={route('sales.show', sale.id)}>
-                    <Button type="button" variant="outline" size="sm">
-                        Lihat Detail
-                    </Button>
+                <Link
+                    href={route('sales.show', sale.id)}
+                    aria-label={`Lihat detail transaksi ${sale.vehicle}`}
+                    title={`Lihat detail transaksi ${sale.vehicle}`}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-surface text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
+                >
+                    <EyeIcon className="h-4 w-4" />
                 </Link>
             ),
         },
@@ -554,6 +557,24 @@ function FilterIcon({ className = '' }: { className?: string }) {
             <path d="M4 6h16" />
             <path d="M7 12h10" />
             <path d="M10 18h4" />
+        </svg>
+    );
+}
+
+function EyeIcon({ className = '' }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+            <circle cx="12" cy="12" r="3" />
         </svg>
     );
 }

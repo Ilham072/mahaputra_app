@@ -81,11 +81,15 @@ Route::middleware(['auth', 'role:admin'])
         'expense-categories',
     ])
     ->group(function (): void {
-        Route::redirect('/', '/master/employees')->name('root');
-        Route::get('/{resource}', [MasterDataController::class, 'index'])->name('index');
+        Route::redirect('/', '/master-data')->name('root');
+        Route::get('/{resource}', [MasterDataController::class, 'legacyIndex'])->name('index');
         Route::post('/{resource}', [MasterDataController::class, 'store'])->name('store');
         Route::patch('/{resource}/{id}', [MasterDataController::class, 'update'])->name('update');
         Route::delete('/{resource}/{id}', [MasterDataController::class, 'destroy'])->name('destroy');
     });
+
+Route::middleware(['auth', 'role:admin'])
+    ->get('/master-data', [MasterDataController::class, 'index'])
+    ->name('master-data.index');
 
 require __DIR__.'/auth.php';

@@ -2,7 +2,6 @@ import Button from '@/Components/Button';
 import { Card, CardContent } from '@/Components/Card';
 import CurrencyDisplay from '@/Components/CurrencyDisplay';
 import DataTable, { type DataTableColumn } from '@/Components/DataTable';
-import Dropdown from '@/Components/Dropdown';
 import EmptyState from '@/Components/EmptyState';
 import KpiCard from '@/Components/KpiCard';
 import PageHeader from '@/Components/PageHeader';
@@ -354,35 +353,83 @@ function CustomerActions({
     isAdmin: boolean;
 }) {
     return (
-        <Dropdown>
-            <Dropdown.Trigger>
-                <button
-                    type="button"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-surface text-lg font-bold leading-none text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
-                    aria-label={`Aksi ${customer.name}`}
+        <div className="flex justify-end gap-2">
+            <IconActionLink
+                href={route('customers.show', customer.id)}
+                label={`Lihat detail ${customer.name}`}
+            >
+                <EyeIcon className="h-4 w-4" />
+            </IconActionLink>
+            {isAdmin && (
+                <IconActionLink
+                    href={route('customers.edit', customer.id)}
+                    label={`Edit customer ${customer.name}`}
                 >
-                    ...
-                </button>
-            </Dropdown.Trigger>
-            <Dropdown.Content>
-                <Dropdown.Link href={route('customers.show', customer.id)}>
-                    Lihat Detail
-                </Dropdown.Link>
-                {isAdmin && (
-                    <Dropdown.Link href={route('customers.edit', customer.id)}>
-                        Edit Customer
-                    </Dropdown.Link>
-                )}
-                <a
-                    href={whatsAppUrl(customer.whatsapp)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block w-full px-4 py-2 text-start text-sm leading-5 text-green-700 transition duration-150 ease-in-out hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-none"
-                >
-                    WhatsApp
-                </a>
-            </Dropdown.Content>
-        </Dropdown>
+                    <EditIcon className="h-4 w-4" />
+                </IconActionLink>
+            )}
+            <IconActionAnchor
+                href={whatsAppUrl(customer.whatsapp)}
+                label={`Hubungi WhatsApp ${customer.name}`}
+                className="text-green-700 hover:bg-green-50 hover:text-green-800"
+            >
+                <WhatsAppIcon className="h-4 w-4" />
+            </IconActionAnchor>
+        </div>
+    );
+}
+
+function IconActionLink({
+    href,
+    label,
+    className = '',
+    children,
+}: {
+    href: string;
+    label: string;
+    className?: string;
+    children: ReactNode;
+}) {
+    return (
+        <Link
+            href={href}
+            aria-label={label}
+            title={label}
+            className={[
+                'inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-surface text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2',
+                className,
+            ].join(' ')}
+        >
+            {children}
+        </Link>
+    );
+}
+
+function IconActionAnchor({
+    href,
+    label,
+    className = '',
+    children,
+}: {
+    href: string;
+    label: string;
+    className?: string;
+    children: ReactNode;
+}) {
+    return (
+        <a
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={label}
+            title={label}
+            className={[
+                'inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-surface text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2',
+                className,
+            ].join(' ')}
+        >
+            {children}
+        </a>
     );
 }
 
@@ -514,6 +561,60 @@ function SearchIcon({ className = '' }: { className?: string }) {
         >
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.3-4.3" />
+        </svg>
+    );
+}
+
+function EyeIcon({ className = '' }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+            <circle cx="12" cy="12" r="3" />
+        </svg>
+    );
+}
+
+function EditIcon({ className = '' }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </svg>
+    );
+}
+
+function WhatsAppIcon({ className = '' }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <path d="M20 11.5a8 8 0 0 1-11.7 7.1L4 20l1.4-4.1A8 8 0 1 1 20 11.5Z" />
+            <path d="M9 9.5c.5 2 2 3.5 4 4l1.2-1.2 1.8.5" />
         </svg>
     );
 }

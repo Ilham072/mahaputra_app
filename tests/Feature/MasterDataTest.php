@@ -21,14 +21,24 @@ class MasterDataTest extends TestCase
         Area::query()->create(['name' => 'Bone']);
 
         $this->actingAs($admin)
-            ->get(route('master.index', 'areas'))
+            ->get(route('master-data.index', ['type' => 'areas']))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('MasterData/Index')
                 ->where('resource', 'areas')
+                ->where('pageTitle', 'Master Data')
                 ->where('title', 'Area')
                 ->has('items', 1)
             );
+    }
+
+    public function test_legacy_master_data_route_redirects_to_unified_page(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin->value]);
+
+        $this->actingAs($admin)
+            ->get(route('master.index', 'areas'))
+            ->assertRedirect(route('master-data.index', ['type' => 'areas']));
     }
 
     public function test_owner_cannot_manage_master_data(): void
@@ -36,7 +46,7 @@ class MasterDataTest extends TestCase
         $owner = User::factory()->create(['role' => UserRole::Owner->value]);
 
         $this->actingAs($owner)
-            ->get(route('master.index', 'areas'))
+            ->get(route('master-data.index', ['type' => 'areas']))
             ->assertForbidden();
     }
 
@@ -48,7 +58,7 @@ class MasterDataTest extends TestCase
             ->post(route('master.store', 'areas'), [
                 'name' => 'Makassar',
             ])
-            ->assertRedirect(route('master.index', 'areas'));
+            ->assertRedirect(route('master-data.index', ['type' => 'areas']));
 
         $this->assertDatabaseHas('areas', [
             'name' => 'Makassar',
@@ -63,11 +73,11 @@ class MasterDataTest extends TestCase
         Area::query()->create(['name' => 'Bone']);
 
         $this->actingAs($admin)
-            ->from(route('master.index', 'areas'))
+            ->from(route('master-data.index', ['type' => 'areas']))
             ->post(route('master.store', 'areas'), [
                 'name' => 'Bone',
             ])
-            ->assertRedirect(route('master.index', 'areas'))
+            ->assertRedirect(route('master-data.index', ['type' => 'areas']))
             ->assertSessionHasErrors('name');
     }
 
@@ -81,7 +91,7 @@ class MasterDataTest extends TestCase
                 'name' => 'Bone Utama',
                 'is_active' => false,
             ])
-            ->assertRedirect(route('master.index', 'areas'));
+            ->assertRedirect(route('master-data.index', ['type' => 'areas']));
 
         $this->assertDatabaseHas('areas', [
             'id' => $area->id,
@@ -97,7 +107,7 @@ class MasterDataTest extends TestCase
 
         $this->actingAs($admin)
             ->delete(route('master.destroy', ['areas', $area->id]))
-            ->assertRedirect(route('master.index', 'areas'));
+            ->assertRedirect(route('master-data.index', ['type' => 'areas']));
 
         $this->assertDatabaseHas('areas', [
             'id' => $area->id,

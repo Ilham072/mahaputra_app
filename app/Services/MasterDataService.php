@@ -13,7 +13,7 @@ use Illuminate\Support\Collection;
 class MasterDataService
 {
     /**
-     * @return array<string, array{model: class-string<Model>, label: string, title: string, description: string}>
+     * @return array<string, array{model: class-string<Model>, label: string, title: string, description: string, field_label: string, add_label: string}>
      */
     public function definitions(): array
     {
@@ -22,37 +22,47 @@ class MasterDataService
                 'model' => Employee::class,
                 'label' => 'Karyawan',
                 'title' => 'Karyawan',
-                'description' => 'Kelola karyawan yang digunakan sebagai PIC transaksi.',
+                'description' => 'Data karyawan yang dapat digunakan sebagai PIC transaksi.',
+                'field_label' => 'Nama Karyawan',
+                'add_label' => 'Tambah Karyawan',
             ],
             'areas' => [
                 'model' => Area::class,
                 'label' => 'Area',
                 'title' => 'Area',
-                'description' => 'Kelola pilihan area transaksi.',
+                'description' => 'Kelola area yang digunakan pada transaksi.',
+                'field_label' => 'Nama Area',
+                'add_label' => 'Tambah Area',
             ],
             'vehicle-brands' => [
                 'model' => VehicleBrand::class,
                 'label' => 'Merk Kendaraan',
                 'title' => 'Merk Kendaraan',
-                'description' => 'Kelola merk kendaraan untuk dropdown kendaraan.',
+                'description' => 'Kelola merk yang tersedia saat input kendaraan.',
+                'field_label' => 'Nama Merk',
+                'add_label' => 'Tambah Merk',
             ],
             'financing-providers' => [
                 'model' => FinancingProvider::class,
                 'label' => 'Pembiayaan',
                 'title' => 'Perusahaan Pembiayaan',
                 'description' => 'Kelola perusahaan pembiayaan untuk transaksi kredit.',
+                'field_label' => 'Nama Perusahaan Pembiayaan',
+                'add_label' => 'Tambah Pembiayaan',
             ],
             'expense-categories' => [
                 'model' => ExpenseCategory::class,
                 'label' => 'Kategori Operasional',
                 'title' => 'Kategori Operasional',
-                'description' => 'Kelola kategori biaya operasional perusahaan.',
+                'description' => 'Kelola kategori yang digunakan saat mencatat pengeluaran.',
+                'field_label' => 'Nama Kategori',
+                'add_label' => 'Tambah Kategori',
             ],
         ];
     }
 
     /**
-     * @return array{model: class-string<Model>, label: string, title: string, description: string}
+     * @return array{model: class-string<Model>, label: string, title: string, description: string, field_label: string, add_label: string}
      */
     public function definition(string $resource): array
     {
@@ -64,11 +74,14 @@ class MasterDataService
     /**
      * @return Collection<int, array{id: int, name: string, is_active: bool}>
      */
-    public function items(string $resource): Collection
+    public function items(string $resource, ?string $search = null, ?string $status = null): Collection
     {
         $model = $this->definition($resource)['model'];
 
         return $model::query()
+            ->when($search, fn ($query, string $search) => $query->where('name', 'like', "%{$search}%"))
+            ->when($status === 'active', fn ($query) => $query->where('is_active', true))
+            ->when($status === 'inactive', fn ($query) => $query->where('is_active', false))
             ->orderByDesc('is_active')
             ->orderBy('name')
             ->get(['id', 'name', 'is_active'])
