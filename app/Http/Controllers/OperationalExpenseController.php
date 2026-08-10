@@ -18,17 +18,30 @@ class OperationalExpenseController extends Controller
 {
     public function index(Request $request): Response
     {
+        $dateFrom = $request->string('date_from')->toString() ?: now()->startOfMonth()->toDateString();
+        $dateTo = $request->string('date_to')->toString() ?: now()->endOfMonth()->toDateString();
+        $search = $request->string('search')->toString();
+        $categoryId = $request->string('category_id')->toString();
+
         $query = OperationalExpense::query()
             ->with('category')
-            ->when($request->string('date_from')->toString(), fn ($query, string $date) => $query->whereDate('transaction_date', '>=', $date))
-            ->when($request->string('date_to')->toString(), fn ($query, string $date) => $query->whereDate('transaction_date', '<=', $date))
-            ->when($request->integer('category_id'), fn ($query, int $categoryId) => $query->where('category_id', $categoryId));
+            ->whereDate('transaction_date', '>=', $dateFrom)
+            ->whereDate('transaction_date', '<=', $dateTo)
+            ->when($categoryId !== '', fn ($query) => $query->where('category_id', $categoryId))
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query
+                        ->where('description', 'like', "%{$search}%")
+                        ->orWhereHas('category', fn ($query) => $query->where('name', 'like', "%{$search}%"));
+                });
+            });
 
         $monthTotal = OperationalExpense::query()
             ->whereBetween('transaction_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
             ->sum('amount');
 
         $filteredTotal = (clone $query)->sum('amount');
+        $filteredCount = (clone $query)->count();
 
         return Inertia::render('Operations/Index', [
             'expenses' => $query
@@ -45,13 +58,15 @@ class OperationalExpenseController extends Controller
                     'proof_download_url' => route('operations.proof.download', $expense),
                 ]),
             'filters' => [
-                'date_from' => $request->string('date_from')->toString(),
-                'date_to' => $request->string('date_to')->toString(),
-                'category_id' => $request->string('category_id')->toString(),
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'search' => $search,
+                'category_id' => $categoryId,
             ],
             'summary' => [
                 'month_total' => $monthTotal,
                 'filtered_total' => $filteredTotal,
+                'transaction_count' => $filteredCount,
             ],
             'categories' => ExpenseCategory::query()
                 ->where('is_active', true)
