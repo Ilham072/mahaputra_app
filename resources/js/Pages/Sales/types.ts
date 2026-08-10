@@ -56,6 +56,11 @@ export type SaleVehicleSearchRow = {
 
 export type SaleDetail = SaleSummary & {
     vehicle_id: number;
+    vehicle_details: {
+        year: number;
+        color: string;
+        capital_type: 'UMUM' | 'KHUSUS';
+    };
     customer: {
         name: string;
         whatsapp: string;

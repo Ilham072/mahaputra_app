@@ -15,6 +15,7 @@ import {
     lazy,
     type ReactNode,
     Suspense,
+    useEffect,
     useState,
 } from 'react';
 import type {
@@ -23,6 +24,7 @@ import type {
     ReportSummary,
     SaleReportRow,
 } from './ReportPdfDocument';
+import type { SaleDetail } from '../Sales/types';
 
 const PdfDownloadAction = lazy(() => import('./PdfDownloadAction'));
 
@@ -79,6 +81,9 @@ export default function ReportsIndex({
     const [pdfPayload, setPdfPayload] = useState<ReportPdfPayload | null>(null);
     const [pdfLoading, setPdfLoading] = useState(false);
     const [pdfError, setPdfError] = useState<string | null>(null);
+    const [selectedSale, setSelectedSale] = useState<SaleDetail | null>(null);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [detailError, setDetailError] = useState<string | null>(null);
 
     const averageProfit =
         summary.sales_count > 0
@@ -168,14 +173,15 @@ export default function ReportsIndex({
             align: 'right',
             cellClassName: 'whitespace-nowrap',
             cell: (sale) => (
-                <Link
-                    href={route('sales.show', sale.id)}
+                <button
+                    type="button"
+                    onClick={() => openSaleDetail(sale.id)}
                     aria-label={`Lihat detail transaksi ${sale.vehicle}`}
                     title={`Lihat detail transaksi ${sale.vehicle}`}
                     className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-surface text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
                 >
                     <EyeIcon className="h-4 w-4" />
-                </Link>
+                </button>
             ),
         },
     ];
@@ -270,6 +276,23 @@ export default function ReportsIndex({
             setPdfError('Data PDF gagal disiapkan.');
         } finally {
             setPdfLoading(false);
+        }
+    };
+
+    const openSaleDetail = async (saleId: number) => {
+        setSelectedSale(null);
+        setDetailError(null);
+        setDetailLoading(true);
+
+        try {
+            const response = await axios.get<{ sale: SaleDetail }>(
+                route('sales.detail-data', saleId),
+            );
+            setSelectedSale(response.data.sale);
+        } catch {
+            setDetailError('Detail transaksi gagal dimuat.');
+        } finally {
+            setDetailLoading(false);
         }
     };
 
@@ -413,6 +436,15 @@ export default function ReportsIndex({
                         />
                     )}
                 </Card>
+                <SaleDetailDrawer
+                    sale={selectedSale}
+                    isLoading={detailLoading}
+                    error={detailError}
+                    onClose={() => {
+                        setSelectedSale(null);
+                        setDetailError(null);
+                    }}
+                />
             </div>
         </AuthenticatedLayout>
     );
@@ -447,6 +479,115 @@ function SummaryCard({
             </div>
         </Card>
     );
+}
+
+function SaleDetailDrawer({
+    sale,
+    isLoading,
+    error,
+    onClose,
+}: {
+    sale: SaleDetail | null;
+    isLoading: boolean;
+    error: string | null;
+    onClose: () => void;
+}) {
+    const open = Boolean(sale || isLoading || error);
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [onClose, open]);
+
+    if (!open) {
+        return null;
+    }
+
+    return (
+        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Detail transaksi penjualan">
+            <button type="button" aria-label="Tutup detail" onClick={onClose} className="absolute inset-0 h-full w-full cursor-default bg-brand-black/40" />
+            <aside className="absolute right-0 top-0 flex h-full w-full max-w-xl flex-col bg-surface shadow-floating">
+                <div className="flex items-start justify-between border-b border-neutral-200 px-5 py-4 sm:px-6">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-brand-yellow-700">Detail Penjualan</p>
+                        <h2 className="mt-1 text-lg font-bold text-neutral-950">{sale?.vehicle ?? 'Memuat detail...'}</h2>
+                        {sale && <p className="text-sm text-neutral-500">{sale.plate_number}</p>}
+                    </div>
+                    <button type="button" onClick={onClose} aria-label="Tutup detail" title="Tutup" className="inline-flex h-9 w-9 items-center justify-center rounded-md text-2xl leading-none text-neutral-500 hover:bg-neutral-100 hover:text-neutral-950">×</button>
+                </div>
+
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+                    {isLoading && <p className="py-10 text-center text-sm text-neutral-500">Memuat detail transaksi...</p>}
+                    {error && <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+                    {sale && !isLoading && (
+                        <div className="space-y-6">
+                            <DetailSection title="Kendaraan">
+                                <DetailGrid items={[
+                                    ['Tahun', String(sale.vehicle_details.year)],
+                                    ['Warna', sale.vehicle_details.color],
+                                    ['Jenis Modal', <StatusBadge key="capital" type="capital" value={sale.vehicle_details.capital_type} />],
+                                    ['Harga Jual', <CurrencyDisplay key="selling" value={sale.selling_price} />],
+                                    ['Tanggal Transaksi', formatDate(sale.sale_date)],
+                                ]} />
+                            </DetailSection>
+
+                            <DetailSection title="Data Pembeli">
+                                <DetailGrid items={[
+                                    ['Nama', sale.customer.name],
+                                    ['WhatsApp', sale.customer.whatsapp],
+                                    ['Alamat', sale.customer.address],
+                                ]} />
+                            </DetailSection>
+
+                            <DetailSection title="Info Penjualan">
+                                <DetailGrid items={[
+                                    ['Tanggal', formatDate(sale.sale_date)],
+                                    ['PIC', sale.employee],
+                                    ['Area', sale.area],
+                                    ['Pembayaran', <StatusBadge key="payment" type="payment" value={sale.payment_type} />],
+                                    ['Pembiayaan', sale.payment.financing_provider ?? '-'],
+                                    ['Nilai Kredit', <CurrencyDisplay key="credit" value={sale.credit_total} />],
+                                    ['DP Customer', <CurrencyDisplay key="dp" value={sale.payment.dp} />],
+                                ]} />
+                            </DetailSection>
+
+                            <div className="overflow-hidden rounded-lg border border-neutral-200">
+                                <h3 className="border-b border-neutral-200 px-4 py-4 text-sm font-bold uppercase tracking-wide text-neutral-500">Ringkasan Finansial</h3>
+                                <div className="divide-y divide-neutral-200 px-4">
+                                    <FinancialRow label="Harga Penjualan" value={sale.selling_price} />
+                                    <FinancialRow label="Modal Kendaraan" value={sale.initial_capital_snapshot} />
+                                    <FinancialRow label="Laba Kendaraan" value={sale.profit_snapshot} highlight />
+                                </div>
+                                <p className="px-4 pb-4 pt-3 text-xs text-neutral-400">Laba ini belum termasuk biaya operasional dan komisi.</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </aside>
+        </div>
+    );
+}
+
+function DetailSection({ title, children }: { title: string; children: ReactNode }) {
+    return <section><h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-neutral-500">{title}</h3>{children}</section>;
+}
+
+function DetailGrid({ items }: { items: Array<[string, ReactNode]> }) {
+    return <dl className="grid gap-x-5 gap-y-4 sm:grid-cols-2">{items.map(([label, value]) => <div key={label}><dt className="text-xs uppercase tracking-wide text-neutral-400">{label}</dt><dd className="mt-1 text-sm font-medium text-neutral-900">{value}</dd></div>)}</dl>;
+}
+
+function FinancialRow({ label, value, highlight = false }: { label: string; value: number; highlight?: boolean }) {
+    return <div className="flex items-center justify-between gap-4 py-3 text-sm"><span className="text-neutral-500">{label}</span><CurrencyDisplay value={value} className={cn('font-semibold', highlight ? 'text-green-700' : 'text-neutral-950')} /></div>;
 }
 
 function ReportsDashboard({

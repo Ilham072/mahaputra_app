@@ -94,6 +94,13 @@ class SaleController extends Controller
         ]);
     }
 
+    public function detailData(Sale $sale): JsonResponse
+    {
+        $sale->load(['vehicle.brand', 'customer', 'employee', 'area', 'payment.financingProvider']);
+
+        return response()->json(['sale' => $this->detail($sale)]);
+    }
+
     public function edit(Sale $sale): Response
     {
         $sale->load(['vehicle.brand', 'vehicle.collaborator', 'vehicle.costs', 'customer', 'payment.financingProvider']);
@@ -279,6 +286,11 @@ class SaleController extends Controller
         return [
             ...$this->summary($sale),
             'vehicle_id' => $sale->vehicle_id,
+            'vehicle_details' => [
+                'year' => $sale->vehicle->year,
+                'color' => $sale->vehicle->color,
+                'capital_type' => $sale->vehicle->capital_type->value,
+            ],
             'customer' => [
                 'name' => $sale->customer->name,
                 'whatsapp' => $sale->customer->whatsapp,
