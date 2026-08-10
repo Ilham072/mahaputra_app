@@ -26,7 +26,7 @@ Login demo:
 Data UAT yang tersedia:
 
 - `DD 1801 UAT`: kendaraan READY KHUSUS untuk uji penjualan CASH, termasuk cover foto.
-- `DD 1802 UAT`: kendaraan READY UMUM dengan kolaborator untuk uji penjualan CREDIT, termasuk cover foto.
+- `DD 1802 UAT`: kendaraan READY KHUSUS dengan kolaborator untuk uji penjualan CREDIT, termasuk cover foto.
 - `DD 1803 UAT`: kendaraan PREPARATION untuk cek status persiapan.
 - `DD 1804 UAT`: kendaraan SOLD CASH untuk laporan dan export, termasuk cover foto.
 - `DD 1805 UAT`: kendaraan SOLD CREDIT untuk laporan dan export, termasuk cover foto.
@@ -55,9 +55,9 @@ Semua file KTP, STNK/BPKB, foto kendaraan, dan bukti operasional dari seeder ada
 ## Flow Admin Credit
 
 - Login sebagai Admin.
-- Buka Kendaraan dan pastikan `DD 1802 UAT` tampil sebagai READY dan bertipe UMUM.
+- Buka Kendaraan dan pastikan `DD 1802 UAT` tampil sebagai READY dan bertipe KHUSUS.
 - Pastikan galeri foto kendaraan dapat menampilkan foto cover.
-- Klik PDF Internal dari detail kendaraan dan pastikan modal UMUM/kolaborator muncul.
+- Klik PDF Internal dari detail kendaraan dan pastikan modal KHUSUS/kolaborator muncul.
 - Pastikan kolaborator serta modal showroom/kolaborator terlihat.
 - Buat penjualan CREDIT dengan provider pembiayaan.
 - Isi DP, DP Terutang, Cair Pembiayaan, dan Refund.

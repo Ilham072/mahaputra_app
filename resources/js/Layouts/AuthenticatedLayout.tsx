@@ -38,12 +38,6 @@ const navigation: NavSection[] = [
                 shortLabel: 'Kendaraan',
             },
             {
-                label: 'Tambah Kendaraan',
-                href: '/vehicles/create',
-                icon: 'plus',
-                adminOnly: true,
-            },
-            {
                 label: 'Transaksi Penjualan',
                 href: '/sales',
                 icon: 'receipt',

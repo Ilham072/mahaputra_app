@@ -1245,9 +1245,7 @@ Jenis Kendaraan
 UMUM:
 
 ```text
-Nama Kolaborator
 Modal Showroom
-Modal Kolaborator
 
 Total Modal Awal
 Rp xxx
@@ -1256,7 +1254,9 @@ Rp xxx
 KHUSUS:
 
 ```text
+Nama Kolaborator
 Modal Showroom
+Modal Kolaborator
 
 Total Modal Awal
 Rp xxx
@@ -1622,7 +1622,7 @@ Invalid input.
 Better:
 
 ```text
-Modal kolaborator wajib diisi untuk kendaraan UMUM.
+Modal kolaborator wajib diisi untuk kendaraan KHUSUS.
 ```
 
 ---

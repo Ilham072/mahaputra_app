@@ -11,7 +11,7 @@ class VehicleCapitalCalculator
         int $showroomCapital,
         int $collaboratorCapital = 0,
     ): int {
-        if ($capitalType === VehicleCapitalType::Khusus) {
+        if ($capitalType === VehicleCapitalType::Umum) {
             return $showroomCapital;
         }
 

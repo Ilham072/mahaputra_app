@@ -233,7 +233,7 @@ class VehiclePhotoTest extends TestCase
             'plate_number' => 'DD 1234 XX',
             'year' => 2022,
             'color' => 'Hitam',
-            'capital_type' => VehicleCapitalType::Khusus->value,
+            'capital_type' => VehicleCapitalType::Umum->value,
             'showroom_capital' => 120000000,
             'tax_status' => VehicleTaxStatus::On->value,
             'tax_amount' => 0,

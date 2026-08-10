@@ -56,7 +56,7 @@ class CreateVehicleAction
      */
     private function collaborator(array $data): ?Collaborator
     {
-        if ($data['capital_type'] !== VehicleCapitalType::Umum->value) {
+        if ($data['capital_type'] !== VehicleCapitalType::Khusus->value) {
             return null;
         }
 

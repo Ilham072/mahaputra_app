@@ -1,13 +1,12 @@
 import Button from '@/Components/Button';
 import { Card, CardContent, CardTitle } from '@/Components/Card';
-import CurrencyDisplay from '@/Components/CurrencyDisplay';
 import FormField from '@/Components/FormField';
 import PageHeader from '@/Components/PageHeader';
 import SelectInput from '@/Components/SelectInput';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import type { FormEventHandler } from 'react';
+import type { FormEventHandler, ReactNode } from 'react';
 import type { VehicleDetail, VehicleOptions } from './types';
 
 type VehicleFormProps = {
@@ -61,24 +60,17 @@ export default function VehicleForm({
         photos: [],
     });
 
-    const showroomCapital = Number(form.data.showroom_capital || 0);
-    const collaboratorCapital =
-        form.data.capital_type === 'UMUM'
-            ? Number(form.data.collaborator_capital || 0)
-            : 0;
-    const initialCapital = showroomCapital + collaboratorCapital;
-
     const submit: FormEventHandler = (event) => {
         event.preventDefault();
 
         const data = {
             ...form.data,
             collaborator_name:
-                form.data.capital_type === 'UMUM'
+                form.data.capital_type === 'KHUSUS'
                     ? form.data.collaborator_name
                     : '',
             collaborator_capital:
-                form.data.capital_type === 'UMUM'
+                form.data.capital_type === 'KHUSUS'
                     ? form.data.collaborator_capital
                     : '',
         };
@@ -105,7 +97,19 @@ export default function VehicleForm({
                             ? 'Edit Kendaraan'
                             : 'Tambah Kendaraan'
                     }
-                    description="Input data inventory kendaraan showroom"
+                    description={
+                        mode === 'edit'
+                            ? 'Perbarui data kendaraan showroom.'
+                            : 'Tambahkan kendaraan baru ke inventory showroom.'
+                    }
+                    actions={
+                        <Link href={route('vehicles.index')}>
+                            <Button type="button" variant="outline">
+                                <BackIcon className="h-4 w-4" />
+                                Inventory
+                            </Button>
+                        </Link>
+                    }
                 />
             }
         >
@@ -115,13 +119,16 @@ export default function VehicleForm({
                 }
             />
 
-            <form onSubmit={submit} className="space-y-6">
+            <form
+                onSubmit={submit}
+                className="mx-auto max-w-4xl space-y-5 lg:space-y-6"
+            >
                 <Card>
-                    <CardContent className="space-y-5">
-                        <CardTitle>Informasi Kendaraan</CardTitle>
+                    <CardContent className="space-y-5 sm:p-6">
+                        <SectionTitle>Informasi Kendaraan</SectionTitle>
                         <div className="grid gap-5 md:grid-cols-2">
                             <FormField
-                                label="Tanggal Pembelian"
+                                label="Tanggal Pembelian *"
                                 error={form.errors.purchase_date}
                             >
                                 <TextInput
@@ -138,7 +145,7 @@ export default function VehicleForm({
                                 />
                             </FormField>
 
-                            <FormField label="Merk" error={form.errors.brand_id}>
+                            <FormField label="Merk *" error={form.errors.brand_id}>
                                 <SelectInput
                                     value={form.data.brand_id}
                                     onChange={(event) =>
@@ -158,9 +165,10 @@ export default function VehicleForm({
                                 </SelectInput>
                             </FormField>
 
-                            <FormField label="Tipe" error={form.errors.type}>
+                            <FormField label="Tipe / Model *" error={form.errors.type}>
                                 <TextInput
                                     className="block w-full"
+                                    placeholder="Avanza G MT"
                                     value={form.data.type}
                                     onChange={(event) =>
                                         form.setData('type', event.target.value)
@@ -170,11 +178,12 @@ export default function VehicleForm({
                             </FormField>
 
                             <FormField
-                                label="No Polisi"
+                                label="Nomor Polisi *"
                                 error={form.errors.plate_number}
                             >
                                 <TextInput
                                     className="block w-full uppercase"
+                                    placeholder="DD 1234 GT"
                                     value={form.data.plate_number}
                                     onChange={(event) =>
                                         form.setData(
@@ -186,10 +195,11 @@ export default function VehicleForm({
                                 />
                             </FormField>
 
-                            <FormField label="Tahun" error={form.errors.year}>
+                            <FormField label="Tahun *" error={form.errors.year}>
                                 <TextInput
                                     type="number"
                                     className="block w-full"
+                                    placeholder="2020"
                                     value={form.data.year}
                                     onChange={(event) =>
                                         form.setData('year', event.target.value)
@@ -198,9 +208,10 @@ export default function VehicleForm({
                                 />
                             </FormField>
 
-                            <FormField label="Warna" error={form.errors.color}>
+                            <FormField label="Warna *" error={form.errors.color}>
                                 <TextInput
                                     className="block w-full"
+                                    placeholder="Putih"
                                     value={form.data.color}
                                     onChange={(event) =>
                                         form.setData('color', event.target.value)
@@ -212,35 +223,89 @@ export default function VehicleForm({
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardContent className="space-y-5">
-                        <CardTitle>Dokumen dan Pajak</CardTitle>
-                        <div className="grid gap-5 md:grid-cols-2">
+                {mode === 'create' && (
+                    <Card>
+                        <CardContent className="space-y-5 sm:p-6">
+                            <SectionTitle>Foto Kendaraan</SectionTitle>
                             <FormField
-                                label="Status Pajak"
-                                error={form.errors.tax_status}
+                                label="Upload foto"
+                                error={form.errors.photos}
+                                className="sr-only"
                             >
-                                <SelectInput
-                                    value={form.data.tax_status}
+                                <span />
+                            </FormField>
+                            <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 px-6 py-8 text-center transition hover:border-brand-yellow-500 hover:bg-brand-yellow-50/50 focus-within:border-brand-yellow-500 focus-within:ring-2 focus-within:ring-brand-yellow-500">
+                                <input
+                                    type="file"
+                                    accept=".jpg,.jpeg,.png,.webp"
+                                    multiple
+                                    className="sr-only"
                                     onChange={(event) =>
                                         form.setData(
-                                            'tax_status',
-                                            event.target
-                                                .value as VehicleFormData['tax_status'],
+                                            'photos',
+                                            Array.from(
+                                                event.target.files ?? [],
+                                            ),
                                         )
                                     }
-                                >
-                                    {options.taxStatuses.map((status) => (
-                                        <option
-                                            key={status.value}
-                                            value={status.value}
-                                        >
-                                            {status.label}
-                                        </option>
-                                    ))}
-                                </SelectInput>
-                            </FormField>
+                                />
+                                <ImageIcon className="h-8 w-8 text-neutral-400" />
+                                <span className="mt-3 text-sm font-semibold text-neutral-700">
+                                    Upload Foto Kendaraan
+                                </span>
+                                <span className="mt-1 text-sm text-neutral-500">
+                                    Tarik foto ke sini atau{' '}
+                                    <span className="font-semibold text-brand-yellow-700">
+                                        pilih dari perangkat
+                                    </span>
+                                </span>
+                                <span className="mt-2 text-xs text-neutral-400">
+                                    Maksimal 5 foto. JPG/PNG/WebP. Maks. 5 MB per
+                                    foto.
+                                </span>
+                            </label>
+                            {form.errors.photos && (
+                                <p className="text-sm text-red-600">
+                                    {form.errors.photos}
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
 
+                <Card>
+                    <CardContent className="space-y-5 sm:p-6">
+                        <SectionTitle>Dokumen & Pajak</SectionTitle>
+                        <FormField
+                            label="Status Pajak *"
+                            error={form.errors.tax_status}
+                        >
+                            <div className="grid gap-3 md:grid-cols-2">
+                                {options.taxStatuses.map((status) => (
+                                    <OptionCard
+                                        key={status.value}
+                                        active={
+                                            form.data.tax_status ===
+                                            status.value
+                                        }
+                                        title={`Pajak ${status.label}`}
+                                        description={
+                                            status.value === 'ON'
+                                                ? 'Tidak ada tunggakan pajak'
+                                                : 'Ada tunggakan pajak'
+                                        }
+                                        onClick={() =>
+                                            form.setData(
+                                                'tax_status',
+                                                status.value as VehicleFormData['tax_status'],
+                                            )
+                                        }
+                                    />
+                                ))}
+                            </div>
+                        </FormField>
+
+                        {form.data.tax_status === 'OFF' && (
                             <FormField
                                 label="Nominal Pajak"
                                 error={form.errors.tax_amount}
@@ -258,67 +323,51 @@ export default function VehicleForm({
                                     }
                                 />
                             </FormField>
-                        </div>
-
-                        {mode === 'create' && (
-                            <FormField
-                                label="Foto Kendaraan"
-                                error={form.errors.photos}
-                                helpText="Maksimal 5 foto, 5 MB per foto. Foto pertama menjadi cover."
-                            >
-                                <input
-                                    type="file"
-                                    accept=".jpg,.jpeg,.png,.webp"
-                                    multiple
-                                    className="block w-full rounded-md border border-neutral-300 bg-surface text-sm text-neutral-700 file:mr-4 file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500"
-                                    onChange={(event) =>
-                                        form.setData(
-                                            'photos',
-                                            Array.from(
-                                                event.target.files ?? [],
-                                            ),
-                                        )
-                                    }
-                                />
-                            </FormField>
                         )}
                     </CardContent>
                 </Card>
 
                 <Card>
-                    <CardContent className="space-y-5">
-                        <CardTitle>Sumber Modal</CardTitle>
+                    <CardContent className="space-y-5 sm:p-6">
+                        <SectionTitle>Sumber Modal</SectionTitle>
+                        <FormField
+                            label="Jenis Modal *"
+                            error={form.errors.capital_type}
+                        >
+                            <div className="grid gap-3 md:grid-cols-2">
+                                {options.capitalTypes.map((type) => (
+                                    <OptionCard
+                                        key={type.value}
+                                        active={
+                                            form.data.capital_type ===
+                                            type.value
+                                        }
+                                        title={type.label}
+                                        description={capitalTypeDescription(
+                                            type.value,
+                                        )}
+                                        onClick={() =>
+                                            form.setData(
+                                                'capital_type',
+                                                type.value as VehicleFormData['capital_type'],
+                                            )
+                                        }
+                                    />
+                                ))}
+                            </div>
+                        </FormField>
+
                         <div className="grid gap-5 md:grid-cols-2">
                             <FormField
-                                label="Jenis Modal"
-                                error={form.errors.capital_type}
-                            >
-                                <SelectInput
-                                    value={form.data.capital_type}
-                                    onChange={(event) =>
-                                        form.setData(
-                                            'capital_type',
-                                            event.target
-                                                .value as VehicleFormData['capital_type'],
-                                        )
-                                    }
-                                >
-                                    {options.capitalTypes.map((type) => (
-                                        <option key={type.value} value={type.value}>
-                                            {type.label}
-                                        </option>
-                                    ))}
-                                </SelectInput>
-                            </FormField>
-
-                            <FormField
-                                label="Modal Showroom"
+                                label="Modal Showroom *"
                                 error={form.errors.showroom_capital}
+                                className="md:col-span-2"
                             >
                                 <TextInput
                                     type="number"
                                     min="0"
                                     className="block w-full"
+                                    placeholder="95000000"
                                     value={form.data.showroom_capital}
                                     onChange={(event) =>
                                         form.setData(
@@ -330,10 +379,10 @@ export default function VehicleForm({
                                 />
                             </FormField>
 
-                            {form.data.capital_type === 'UMUM' && (
+                            {form.data.capital_type === 'KHUSUS' && (
                                 <>
                                     <FormField
-                                        label="Nama Kolaborator"
+                                        label="Nama Kolaborator *"
                                         error={form.errors.collaborator_name}
                                     >
                                         <TextInput
@@ -350,7 +399,7 @@ export default function VehicleForm({
                                     </FormField>
 
                                     <FormField
-                                        label="Modal Kolaborator"
+                                        label="Modal Kolaborator *"
                                         error={form.errors.collaborator_capital}
                                     >
                                         <TextInput
@@ -370,31 +419,22 @@ export default function VehicleForm({
                                 </>
                             )}
                         </div>
-
-                        <div className="rounded-md border border-neutral-200 bg-neutral-50 p-4">
-                            <div className="text-sm font-medium text-neutral-500">
-                                Total Modal Awal
-                            </div>
-                            <CurrencyDisplay
-                                value={initialCapital}
-                                className="mt-1 block text-2xl font-bold text-neutral-950"
-                            />
-                        </div>
                     </CardContent>
                 </Card>
 
                 <Card>
-                    <CardContent className="space-y-5">
-                        <CardTitle>Harga dan Status</CardTitle>
+                    <CardContent className="space-y-5 sm:p-6">
+                        <SectionTitle>Harga & Status</SectionTitle>
                         <div className="grid gap-5 md:grid-cols-2">
                             <FormField
-                                label="Harga Penawaran"
+                                label="Harga Penawaran *"
                                 error={form.errors.asking_price}
                             >
                                 <TextInput
                                     type="number"
                                     min="0"
                                     className="block w-full"
+                                    placeholder="145000000"
                                     value={form.data.asking_price}
                                     onChange={(event) =>
                                         form.setData(
@@ -406,32 +446,38 @@ export default function VehicleForm({
                                 />
                             </FormField>
 
-                            <FormField label="Status" error={form.errors.status}>
-                                <SelectInput
-                                    value={form.data.status}
-                                    onChange={(event) =>
-                                        form.setData(
-                                            'status',
-                                            event.target
-                                                .value as VehicleFormData['status'],
-                                        )
-                                    }
-                                >
+                            <FormField
+                                label="Status Kendaraan *"
+                                error={form.errors.status}
+                                helpText="Kendaraan baru biasanya dimulai dari Persiapan."
+                            >
+                                <div className="grid gap-3 sm:grid-cols-2">
                                     {options.statuses.map((status) => (
-                                        <option
+                                        <OptionCard
                                             key={status.value}
-                                            value={status.value}
-                                        >
-                                            {status.label}
-                                        </option>
+                                            active={
+                                                form.data.status ===
+                                                status.value
+                                            }
+                                            title={status.label}
+                                            description={statusDescription(
+                                                status.value,
+                                            )}
+                                            onClick={() =>
+                                                form.setData(
+                                                    'status',
+                                                    status.value as VehicleFormData['status'],
+                                                )
+                                            }
+                                        />
                                     ))}
-                                </SelectInput>
+                                </div>
                             </FormField>
                         </div>
                     </CardContent>
                 </Card>
 
-                <div className="sticky bottom-0 flex justify-end gap-3 border-t border-neutral-200 bg-neutral-50 py-4">
+                <div className="sticky bottom-0 flex justify-end gap-3 border-t border-neutral-200 bg-neutral-50/95 py-4 backdrop-blur">
                     <Link
                         href={
                             vehicle
@@ -453,5 +499,123 @@ export default function VehicleForm({
                 </div>
             </form>
         </AuthenticatedLayout>
+    );
+}
+
+function SectionTitle({ children }: { children: ReactNode }) {
+    return (
+        <div className="border-b border-neutral-200 pb-4">
+            <CardTitle className="text-sm font-bold uppercase tracking-wide text-neutral-600">
+                {children}
+            </CardTitle>
+        </div>
+    );
+}
+
+function OptionCard({
+    active,
+    title,
+    description,
+    onClick,
+}: {
+    active: boolean;
+    title: string;
+    description: string;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={[
+                'flex min-h-20 flex-col items-center justify-center rounded-md border px-4 py-3 text-center transition focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2',
+                active
+                    ? 'border-brand-yellow-500 bg-brand-yellow-50 text-brand-black'
+                    : 'border-neutral-200 bg-surface text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50',
+            ].join(' ')}
+        >
+            <span className="text-sm font-bold uppercase text-neutral-950">
+                {title}
+            </span>
+            <span className="mt-1 text-xs text-neutral-500">{description}</span>
+            {active && (
+                <span className="mt-2 flex h-5 w-5 items-center justify-center rounded-full bg-brand-yellow-500 text-brand-black">
+                    <CheckIcon className="h-3.5 w-3.5" />
+                </span>
+            )}
+        </button>
+    );
+}
+
+function capitalTypeDescription(value: string) {
+    if (value === 'UMUM') {
+        return 'Modal dari showroom';
+    }
+
+    return 'Showroom + kolaborator';
+}
+
+function statusDescription(value: string) {
+    const descriptions: Record<string, string> = {
+        PREPARATION: 'Belum siap dipasarkan',
+        READY: 'Siap ditawarkan',
+        BOOKING: 'Sedang dibooking',
+        SOLD: 'Sudah terjual',
+    };
+
+    return descriptions[value] ?? 'Status kendaraan';
+}
+
+function BackIcon({ className = '' }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <path d="M19 12H5" />
+            <path d="m12 19-7-7 7-7" />
+        </svg>
+    );
+}
+
+function ImageIcon({ className = '' }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="9" cy="9" r="2" />
+            <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
+        </svg>
+    );
+}
+
+function CheckIcon({ className = '' }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            className={className}
+        >
+            <path
+                fillRule="evenodd"
+                d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 0 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0Z"
+                clipRule="evenodd"
+            />
+        </svg>
     );
 }

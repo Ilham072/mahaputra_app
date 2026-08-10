@@ -73,27 +73,30 @@ class VehicleManagementTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_admin_can_create_khusus_vehicle_without_collaborator(): void
+    public function test_admin_can_create_umum_vehicle_without_collaborator(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
         $brand = VehicleBrand::query()->create(['name' => 'Toyota']);
 
         $this->actingAs($admin)
             ->post(route('vehicles.store'), [
-                ...$this->vehiclePayload(['brand_id' => $brand->id]),
+                ...$this->vehiclePayload([
+                    'brand_id' => $brand->id,
+                    'capital_type' => VehicleCapitalType::Umum->value,
+                ]),
                 'plate_number' => 'dd 1234 xx',
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('vehicles', [
             'plate_number' => 'DD 1234 XX',
-            'capital_type' => VehicleCapitalType::Khusus->value,
+            'capital_type' => VehicleCapitalType::Umum->value,
             'collaborator_id' => null,
             'collaborator_capital' => 0,
         ]);
     }
 
-    public function test_umum_vehicle_requires_collaborator(): void
+    public function test_khusus_vehicle_requires_collaborator(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
         $brand = VehicleBrand::query()->create(['name' => 'Toyota']);
@@ -103,7 +106,7 @@ class VehicleManagementTest extends TestCase
             ->post(route('vehicles.store'), [
                 ...$this->vehiclePayload([
                     'brand_id' => $brand->id,
-                    'capital_type' => VehicleCapitalType::Umum->value,
+                    'capital_type' => VehicleCapitalType::Khusus->value,
                 ]),
                 'collaborator_name' => '',
                 'collaborator_capital' => '',
@@ -112,7 +115,7 @@ class VehicleManagementTest extends TestCase
             ->assertSessionHasErrors(['collaborator_name', 'collaborator_capital']);
     }
 
-    public function test_admin_can_create_umum_vehicle_with_one_collaborator(): void
+    public function test_admin_can_create_khusus_vehicle_with_one_collaborator(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
         $brand = VehicleBrand::query()->create(['name' => 'Toyota']);
@@ -121,7 +124,7 @@ class VehicleManagementTest extends TestCase
             ->post(route('vehicles.store'), [
                 ...$this->vehiclePayload([
                     'brand_id' => $brand->id,
-                    'capital_type' => VehicleCapitalType::Umum->value,
+                    'capital_type' => VehicleCapitalType::Khusus->value,
                 ]),
                 'collaborator_name' => 'Budi',
                 'collaborator_capital' => 50000000,
@@ -135,19 +138,19 @@ class VehicleManagementTest extends TestCase
 
         $this->assertDatabaseHas('vehicles', [
             'plate_number' => 'DD 1234 XX',
-            'capital_type' => VehicleCapitalType::Umum->value,
+            'capital_type' => VehicleCapitalType::Khusus->value,
             'collaborator_capital' => 50000000,
         ]);
     }
 
-    public function test_admin_can_update_vehicle_to_khusus_and_clear_collaborator(): void
+    public function test_admin_can_update_vehicle_to_umum_and_clear_collaborator(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
         $brand = VehicleBrand::query()->create(['name' => 'Toyota']);
         $collaborator = Collaborator::query()->create(['name' => 'Budi']);
         $vehicle = Vehicle::query()->create($this->vehiclePayload([
             'brand_id' => $brand->id,
-            'capital_type' => VehicleCapitalType::Umum->value,
+            'capital_type' => VehicleCapitalType::Khusus->value,
             'collaborator_id' => $collaborator->id,
             'collaborator_capital' => 50000000,
         ]));
@@ -156,7 +159,7 @@ class VehicleManagementTest extends TestCase
             ->patch(route('vehicles.update', $vehicle), [
                 ...$this->vehiclePayload([
                     'brand_id' => $brand->id,
-                    'capital_type' => VehicleCapitalType::Khusus->value,
+                    'capital_type' => VehicleCapitalType::Umum->value,
                     'plate_number' => 'DD 4321 YY',
                 ]),
             ])
@@ -165,7 +168,7 @@ class VehicleManagementTest extends TestCase
         $this->assertDatabaseHas('vehicles', [
             'id' => $vehicle->id,
             'plate_number' => 'DD 4321 YY',
-            'capital_type' => VehicleCapitalType::Khusus->value,
+            'capital_type' => VehicleCapitalType::Umum->value,
             'collaborator_id' => null,
             'collaborator_capital' => 0,
         ]);
@@ -247,7 +250,7 @@ class VehicleManagementTest extends TestCase
             'plate_number' => 'DD 1234 XX',
             'year' => 2022,
             'color' => 'Hitam',
-            'capital_type' => VehicleCapitalType::Khusus->value,
+            'capital_type' => VehicleCapitalType::Umum->value,
             'showroom_capital' => 120000000,
             'tax_status' => VehicleTaxStatus::On->value,
             'tax_amount' => 0,

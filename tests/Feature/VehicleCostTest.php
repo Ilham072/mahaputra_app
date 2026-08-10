@@ -24,7 +24,7 @@ class VehicleCostTest extends TestCase
         $calculator = app(VehicleCapitalCalculator::class);
 
         $initialCapital = $calculator->initialCapital(
-            VehicleCapitalType::Umum,
+            VehicleCapitalType::Khusus,
             120000000,
             50000000,
         );

@@ -259,7 +259,7 @@ class ReportTest extends TestCase
     private function createVehicle(string $plateNumber, VehicleCapitalType $capitalType): Vehicle
     {
         $brand = VehicleBrand::query()->firstOrCreate(['name' => 'Toyota']);
-        $collaborator = $capitalType === VehicleCapitalType::Umum
+        $collaborator = $capitalType === VehicleCapitalType::Khusus
             ? Collaborator::query()->firstOrCreate(['name' => 'Kolaborator A'])
             : null;
 

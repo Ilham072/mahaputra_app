@@ -467,18 +467,6 @@ Important invariants:
 ### UMUM
 
 ```text
-collaborator_id != null
-collaborator_capital > 0
-```
-
-```text
-Modal Awal =
-Modal Showroom + Modal Kolaborator
-```
-
-### KHUSUS
-
-```text
 collaborator_id = null
 collaborator_capital = 0
 ```
@@ -486,6 +474,18 @@ collaborator_capital = 0
 ```text
 Modal Awal =
 Modal Showroom
+```
+
+### KHUSUS
+
+```text
+collaborator_id != null
+collaborator_capital > 0
+```
+
+```text
+Modal Awal =
+Modal Showroom + Modal Kolaborator
 ```
 
 ### Modal Akhir
@@ -1771,8 +1771,8 @@ DP
 
 * Admin can create vehicle.
 * Owner cannot create vehicle.
-* UMUM requires collaborator.
-* KHUSUS rejects collaborator capital.
+* KHUSUS requires collaborator.
+* UMUM rejects collaborator capital.
 * CASH rejects credit fields.
 * CREDIT requires financing provider.
 * Sold vehicle cannot be sold twice.

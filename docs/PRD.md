@@ -346,8 +346,8 @@ Untuk MVP, produk tidak ditujukan untuk:
 
 **Alternative/exception flows:**
 
-* A1. Jika kendaraan UMUM, sistem meminta kolaborator dan modal kolaborator.
-* A2. Jika kendaraan KHUSUS, field kolaborator tidak ditampilkan.
+* A1. Jika kendaraan KHUSUS, sistem meminta kolaborator dan modal kolaborator.
+* A2. Jika kendaraan UMUM, field kolaborator tidak ditampilkan.
 * E1. Jika field wajib belum lengkap, sistem menolak penyimpanan dan menandai field terkait.
 * E2. Jika upload gagal, sistem memberikan pesan kegagalan tanpa kehilangan data form yang telah diinput.
 
@@ -569,9 +569,9 @@ Untuk MVP, produk tidak ditujukan untuk:
 * Actor: Admin
 * Processing rules:
 
-  * UMUM memiliki modal showroom dan modal kolaborator.
-  * KHUSUS memiliki modal sepenuhnya dari showroom.
-  * Maksimal satu kolaborator untuk satu kendaraan pada MVP.
+  * UMUM memiliki modal sepenuhnya dari showroom.
+  * KHUSUS memiliki modal showroom dan modal kolaborator.
+  * Maksimal satu kolaborator untuk satu kendaraan KHUSUS pada MVP.
 * Priority: MUST
 
 ### FR-VEH-003 — Dokumen Kendaraan
@@ -609,8 +609,8 @@ Untuk MVP, produk tidak ditujukan untuk:
 * Description: Sistem menghitung modal akhir kendaraan secara otomatis.
 * Processing rules:
 
-  * Total Modal Awal = Modal Showroom + Modal Kolaborator jika UMUM.
-  * Total Modal Awal = Modal Showroom jika KHUSUS.
+  * Total Modal Awal = Modal Showroom jika UMUM.
+  * Total Modal Awal = Modal Showroom + Modal Kolaborator jika KHUSUS.
   * Modal Akhir = Total Modal Awal + Total Biaya Kendaraan.
 * Priority: MUST
 
@@ -753,7 +753,7 @@ Laba kendaraan:
 
 * Description: Biaya operasional harus diperhitungkan dalam analisis keuntungan perusahaan.
 * Priority: MUST
-* Note: Perhitungan final keuntungan showroom untuk kendaraan UMUM bergantung pada formula pembagian laba kolaborator yang masih TBD.
+* Note: Perhitungan final keuntungan showroom untuk kendaraan KHUSUS bergantung pada formula pembagian laba kolaborator yang masih TBD.
 
 ---
 
@@ -846,12 +846,12 @@ Laba kendaraan:
 
 # 9. Business Rules
 
-* **BR-001:** Kendaraan UMUM memiliki modal dari showroom dan satu kolaborator.
-* **BR-002:** Kendaraan KHUSUS menggunakan 100% modal showroom.
-* **BR-003:** Satu kendaraan UMUM hanya memiliki maksimal satu kolaborator pada MVP.
-* **BR-004:** Kolaborator kendaraan UMUM mendapatkan bagian keuntungan, tetapi formula pembagiannya masih TBD.
-* **BR-005:** Modal Awal UMUM = Modal Showroom + Modal Kolaborator.
-* **BR-006:** Modal Awal KHUSUS = Modal Showroom.
+* **BR-001:** Kendaraan UMUM menggunakan 100% modal showroom.
+* **BR-002:** Kendaraan KHUSUS memiliki modal dari showroom dan satu kolaborator.
+* **BR-003:** Satu kendaraan KHUSUS hanya memiliki maksimal satu kolaborator pada MVP.
+* **BR-004:** Kolaborator kendaraan KHUSUS mendapatkan bagian keuntungan, tetapi formula pembagiannya masih TBD.
+* **BR-005:** Modal Awal UMUM = Modal Showroom.
+* **BR-006:** Modal Awal KHUSUS = Modal Showroom + Modal Kolaborator.
 * **BR-007:** Modal Akhir = Modal Awal + seluruh biaya kendaraan.
 * **BR-008:** Dico termasuk biaya perbaikan/pengecatan kendaraan.
 * **BR-009:** Harga penawaran tidak harus sama dengan harga terjual.
@@ -942,8 +942,8 @@ Laba kendaraan:
 * Tanggal pembelian wajib.
 * Tahun kendaraan harus berupa tahun valid.
 * Nominal uang tidak boleh negatif kecuali business rule tertentu secara eksplisit memperbolehkan.
-* Kendaraan UMUM wajib memiliki kolaborator.
-* Kendaraan KHUSUS tidak membutuhkan kolaborator.
+* Kendaraan KHUSUS wajib memiliki kolaborator.
+* Kendaraan UMUM tidak membutuhkan kolaborator.
 * CASH tidak boleh menyimpan field kredit.
 * KREDIT wajib memiliki perusahaan pembiayaan.
 * Kendaraan SOLD tidak boleh dijual kembali tanpa proses koreksi transaksi.
@@ -1297,7 +1297,7 @@ Jika rilis bermasalah:
 
 | ID     | Question                                                                               | Owner                | Due date | Decision/status   |
 | ------ | -------------------------------------------------------------------------------------- | -------------------- | -------- | ----------------- |
-| OQ-001 | Bagaimana formula pembagian laba antara showroom dan kolaborator untuk kendaraan UMUM? | Owner/Product        | TBD      | OPEN              |
+| OQ-001 | Bagaimana formula pembagian laba antara showroom dan kolaborator untuk kendaraan KHUSUS? | Owner/Product        | TBD      | OPEN              |
 | OQ-002 | Apakah pembagian berdasarkan proporsi modal atau persentase kesepakatan?               | Owner/Product        | TBD      | OPEN              |
 | OQ-003 | Apakah kendaraan dapat berpindah Area secara resmi?                                    | Business Stakeholder | TBD      | NEED CONFIRMATION |
 | OQ-004 | Jika kendaraan berpindah Area, apakah perlu menyimpan histori perpindahan?             | Product              | TBD      | OPEN              |
@@ -1310,7 +1310,7 @@ Jika rilis bermasalah:
 | OQ-011 | Field apa saja yang final untuk PDF internal dan invoice customer?                     | Admin/Product        | TBD      | OPEN              |
 | OQ-012 | Apakah transaksi yang sudah SOLD membutuhkan approval saat diedit?                     | Owner/Product        | TBD      | FUTURE/OPEN       |
 | OQ-013 | Apakah satu user Admin dapat mengakses seluruh Area atau dibatasi per Area?            | Owner/Product        | TBD      | OPEN              |
-| OQ-014 | Bagaimana definisi final Keuntungan Perusahaan setelah pembagian laba kendaraan UMUM?  | Owner/Product        | TBD      | OPEN              |
+| OQ-014 | Bagaimana definisi final Keuntungan Perusahaan setelah pembagian laba kendaraan KHUSUS? | Owner/Product        | TBD      | OPEN              |
 
 ---
 
@@ -1318,8 +1318,8 @@ Jika rilis bermasalah:
 
 | Date       | Decision                                                 | Reason                         | Decision maker       |
 | ---------- | -------------------------------------------------------- | ------------------------------ | -------------------- |
-| 2026-08-07 | UMUM memiliki modal showroom + kolaborator               | Sesuai proses bisnis           | Business Stakeholder |
-| 2026-08-07 | KHUSUS menggunakan 100% modal showroom                   | Sesuai proses bisnis           | Business Stakeholder |
+| 2026-08-10 | UMUM menggunakan 100% modal showroom                     | Koreksi proses bisnis          | Business Stakeholder |
+| 2026-08-10 | KHUSUS memiliki modal showroom + kolaborator             | Koreksi proses bisnis          | Business Stakeholder |
 | 2026-08-07 | Maksimal satu kolaborator per kendaraan untuk versi awal | Menyederhanakan kebutuhan awal | Business Stakeholder |
 | 2026-08-07 | Dokumen kendaraan terdiri dari STNK dan BPKB             | Koreksi hasil riset awal       | Business Stakeholder |
 | 2026-08-07 | Dico dikategorikan sebagai biaya perbaikan/pewarnaan     | Sesuai terminologi operasional | Business Stakeholder |
@@ -1327,7 +1327,7 @@ Jika rilis bermasalah:
 | 2026-08-07 | Tanggal pembelian diinput saat kendaraan masuk showroom  | Sesuai alur kendaraan          | Business Stakeholder |
 | 2026-08-07 | CASH tidak memiliki DP Terutang                          | Klarifikasi payment flow       | Business Stakeholder |
 | 2026-08-07 | Biaya operasional mempengaruhi keuntungan perusahaan     | Sesuai perhitungan bisnis      | Business Stakeholder |
-| 2026-08-07 | Kolaborator mendapatkan bagian keuntungan                | Sesuai skema kendaraan UMUM    | Business Stakeholder |
+| 2026-08-10 | Kolaborator mendapatkan bagian keuntungan                | Sesuai skema kendaraan KHUSUS  | Business Stakeholder |
 | 2026-08-07 | Transaksi SOLD masih dapat diedit untuk MVP              | Kebutuhan operasional awal     | Business Stakeholder |
 | 2026-08-07 | Owner fokus pada dashboard dan laporan                   | Pembagian role                 | Business Stakeholder |
 | 2026-08-07 | Sistem membutuhkan PDF pelanggan dan internal            | Perbedaan kebutuhan informasi  | Business Stakeholder |
