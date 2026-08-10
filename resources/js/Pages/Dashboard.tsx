@@ -646,7 +646,7 @@ function QuickActionsCard({ isAdmin }: { isAdmin: boolean }) {
                                 + Tambah Kendaraan
                             </Button>
                         </Link>
-                        <Link href={route('vehicles.index')} className="block">
+                        <Link href={route('sales.index')} className="block">
                             <Button
                                 type="button"
                                 variant="secondary"
