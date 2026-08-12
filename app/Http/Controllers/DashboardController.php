@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentType;
 use App\Enums\VehicleStatus;
 use App\Models\OperationalExpense;
 use App\Models\Sale;
@@ -49,7 +50,7 @@ class DashboardController extends Controller
                     ->whereBetween('transaction_date', [$periodStart->toDateString(), $periodEnd->toDateString()])
                     ->sum('amount'),
             ],
-            'salesTrend' => $this->salesTrend($periodStart, $salesReport),
+            'salesTrend' => $this->salesTrend($periodStart),
             'expenseBreakdown' => $this->expenseBreakdown($periodStart, $periodEnd),
             'stockAge' => $this->stockAge($periodEnd),
             'recentSales' => Sale::query()
@@ -103,22 +104,31 @@ class DashboardController extends Controller
     /**
      * @return list<array{month: string, label: string, sales_count: int, sales_value: int, profit_total: int}>
      */
-    private function salesTrend(CarbonImmutable $periodStart, SalesReportService $salesReport): array
+    private function salesTrend(CarbonImmutable $periodStart): array
     {
+        $rangeStart = $periodStart->subMonths(5)->startOfMonth();
+        $rangeEnd = $periodStart->endOfMonth();
+        $rows = Sale::query()
+            ->whereBetween('sale_date', [$rangeStart->toDateString(), $rangeEnd->toDateString()])
+            ->selectRaw('substr(sale_date, 1, 7) as month')
+            ->selectRaw('COUNT(*) as sales_count')
+            ->selectRaw('COALESCE(SUM(CASE WHEN payment_type = ? THEN credit_total ELSE selling_price END), 0) as sales_value', [PaymentType::Credit->value])
+            ->selectRaw('COALESCE(SUM(profit_snapshot), 0) as profit_total')
+            ->groupBy('month')
+            ->get()
+            ->keyBy('month');
+
         return collect(range(5, 0))
-            ->map(function (int $offset) use ($periodStart, $salesReport): array {
+            ->map(function (int $offset) use ($periodStart, $rows): array {
                 $monthStart = $periodStart->subMonths($offset)->startOfMonth();
-                $monthEnd = $monthStart->endOfMonth();
-                $sales = Sale::query()
-                    ->whereBetween('sale_date', [$monthStart->toDateString(), $monthEnd->toDateString()]);
-                $summary = $salesReport->summary($sales);
+                $row = $rows->get($monthStart->format('Y-m'));
 
                 return [
                     'month' => $monthStart->format('Y-m'),
                     'label' => $this->monthLabel($monthStart, true),
-                    'sales_count' => $summary['sales_count'],
-                    'sales_value' => $summary['sales_value'],
-                    'profit_total' => $summary['profit_total'],
+                    'sales_count' => (int) ($row?->sales_count ?? 0),
+                    'sales_value' => (int) ($row?->sales_value ?? 0),
+                    'profit_total' => (int) ($row?->profit_total ?? 0),
                 ];
             })
             ->values()
@@ -161,32 +171,33 @@ class DashboardController extends Controller
      */
     private function stockAge(CarbonImmutable $periodEnd): array
     {
-        $buckets = [
-            ['label' => '0-30 hari', 'min' => 0, 'max' => 30, 'count' => 0],
-            ['label' => '31-60 hari', 'min' => 31, 'max' => 60, 'count' => 0],
-            ['label' => '61-90 hari', 'min' => 61, 'max' => 90, 'count' => 0],
-            ['label' => '> 90 hari', 'min' => 91, 'max' => null, 'count' => 0],
-        ];
+        $periodEndDate = $periodEnd->toDateString();
+        $age30Start = $periodEnd->subDays(30)->toDateString();
+        $age31Start = $periodEnd->subDays(60)->toDateString();
+        $age31End = $periodEnd->subDays(31)->toDateString();
+        $age61Start = $periodEnd->subDays(90)->toDateString();
+        $age61End = $periodEnd->subDays(61)->toDateString();
+        $ageOver90End = $periodEnd->subDays(91)->toDateString();
 
-        Vehicle::query()
+        $row = Vehicle::query()
             ->whereIn('status', [
                 VehicleStatus::Preparation->value,
                 VehicleStatus::Ready->value,
                 VehicleStatus::Booking->value,
             ])
-            ->whereDate('purchase_date', '<=', $periodEnd->toDateString())
-            ->get(['purchase_date'])
-            ->each(function (Vehicle $vehicle) use (&$buckets, $periodEnd): void {
-                $age = (int) $vehicle->purchase_date->startOfDay()->diffInDays($periodEnd->startOfDay());
+            ->whereDate('purchase_date', '<=', $periodEndDate)
+            ->selectRaw('COUNT(CASE WHEN purchase_date BETWEEN ? AND ? THEN 1 END) as age_0_30', [$age30Start, $periodEndDate])
+            ->selectRaw('COUNT(CASE WHEN purchase_date BETWEEN ? AND ? THEN 1 END) as age_31_60', [$age31Start, $age31End])
+            ->selectRaw('COUNT(CASE WHEN purchase_date BETWEEN ? AND ? THEN 1 END) as age_61_90', [$age61Start, $age61End])
+            ->selectRaw('COUNT(CASE WHEN purchase_date <= ? THEN 1 END) as age_over_90', [$ageOver90End])
+            ->first();
 
-                foreach ($buckets as &$bucket) {
-                    if ($age >= $bucket['min'] && ($bucket['max'] === null || $age <= $bucket['max'])) {
-                        $bucket['count']++;
-
-                        break;
-                    }
-                }
-            });
+        $buckets = [
+            ['label' => '0-30 hari', 'count' => (int) ($row?->age_0_30 ?? 0)],
+            ['label' => '31-60 hari', 'count' => (int) ($row?->age_31_60 ?? 0)],
+            ['label' => '61-90 hari', 'count' => (int) ($row?->age_61_90 ?? 0)],
+            ['label' => '> 90 hari', 'count' => (int) ($row?->age_over_90 ?? 0)],
+        ];
 
         $total = max(collect($buckets)->sum('count'), 1);
 
