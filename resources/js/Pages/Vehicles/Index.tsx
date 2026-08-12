@@ -148,7 +148,10 @@ export default function VehicleIndex({
                     actions={
                         isAdmin && (
                             <Link href={route('vehicles.create')}>
-                                <Button>Tambah Kendaraan</Button>
+                                <Button className="gap-2">
+                                    <PlusIcon className="h-4 w-4" />
+                                    Tambah Kendaraan
+                                </Button>
                             </Link>
                         )
                     }
@@ -309,7 +312,10 @@ export default function VehicleIndex({
                         action={
                             isAdmin && (
                                 <Link href={route('vehicles.create')}>
-                                    <Button>Tambah Kendaraan</Button>
+                                    <Button className="gap-2">
+                                        <PlusIcon className="h-4 w-4" />
+                                        Tambah Kendaraan
+                                    </Button>
                                 </Link>
                             )
                         }
@@ -356,6 +362,24 @@ export default function VehicleIndex({
                 )}
             </div>
         </AuthenticatedLayout>
+    );
+}
+
+function PlusIcon({ className = '' }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+        </svg>
     );
 }
 
