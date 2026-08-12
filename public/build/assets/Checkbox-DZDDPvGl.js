@@ -1,0 +1,1 @@
+import{j as r}from"./app-Ct9rzTS6.js";function t({className:e="",...o}){return r.jsx("input",{...o,type:"checkbox",className:"rounded-sm border-neutral-300 text-brand-yellow-500 shadow-sm focus:ring-brand-yellow-500 "+e})}export{t as C};

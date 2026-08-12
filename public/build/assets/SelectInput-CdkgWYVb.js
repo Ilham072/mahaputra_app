@@ -1,1 +1,0 @@
-import{r as t,j as s}from"./app-CIg7yQhP.js";const a=t.forwardRef(function({className:r="",...e},o){return s.jsx("select",{...e,ref:o,className:"block h-10 w-full rounded-md border-neutral-300 text-sm shadow-sm focus:border-brand-yellow-500 focus:ring-brand-yellow-500 "+r})});export{a as S};

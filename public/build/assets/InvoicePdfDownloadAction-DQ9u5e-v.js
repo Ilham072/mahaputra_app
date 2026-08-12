@@ -1,0 +1,1 @@
+import{j as e}from"./app-Ct9rzTS6.js";import{P as t}from"./react-pdf.browser-D_u9fRhS.js";import r from"./InvoicePdfDocument-BnAS83ED.js";function u({payload:o,className:n}){return e.jsx(t,{className:n,document:e.jsx(r,{payload:o}),fileName:`${o.invoice.number.toLowerCase()}.pdf`,children:({loading:i})=>i?"Membuat Invoice":"Unduh Invoice"})}export{u as default};
