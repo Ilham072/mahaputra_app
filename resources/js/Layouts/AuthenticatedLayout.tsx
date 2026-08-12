@@ -125,15 +125,19 @@ function Brand() {
             href="/"
             className="flex items-center gap-3 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-yellow-400"
         >
-            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-brand-yellow-500 text-base font-bold text-brand-black">
-                M
+            <span className="flex h-10 w-12 shrink-0 items-center justify-center rounded-md">
+                <img
+                    src="/brand/logo_mahaputra.png"
+                    alt="MAHAPUTRA MOTOR"
+                    className="h-10 w-12 object-contain"
+                />
             </span>
             <span className="min-w-0">
                 <span className="block text-sm font-semibold leading-5 text-white">
-                    Mahaputra
+                    MAHAPUTRA MOTOR
                 </span>
                 <span className="block text-[11px] font-semibold uppercase leading-4 text-neutral-400">
-                    Motor Backoffice
+                    Backoffice
                 </span>
             </span>
         </Link>
