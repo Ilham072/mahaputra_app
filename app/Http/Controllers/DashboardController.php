@@ -54,6 +54,7 @@ class DashboardController extends Controller
             'stockAge' => $this->stockAge($periodEnd),
             'recentSales' => Sale::query()
                 ->with(['vehicle.brand', 'customer', 'area'])
+                ->whereBetween('sale_date', [$periodStart->toDateString(), $periodEnd->toDateString()])
                 ->latest('sale_date')
                 ->latest('id')
                 ->limit(5)
@@ -72,7 +73,8 @@ class DashboardController extends Controller
                 ->values(),
             'recentVehicles' => Vehicle::query()
                 ->with('brand')
-                ->latest('created_at')
+                ->whereBetween('purchase_date', [$periodStart->toDateString(), $periodEnd->toDateString()])
+                ->latest('purchase_date')
                 ->latest('id')
                 ->limit(5)
                 ->get()

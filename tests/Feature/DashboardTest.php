@@ -36,7 +36,7 @@ class DashboardTest extends TestCase
         $soldVehicle = $this->createVehicle('DD 1003 MP', VehicleStatus::Sold);
 
         $this->createSale($soldVehicle, '2026-08-08', 10000000, 'Pembeli Agustus');
-        $this->createSale($this->createVehicle('DD 1004 MP', VehicleStatus::Sold), '2026-07-20', 99000000, 'Pembeli Juli');
+        $this->createSale($this->createVehicle('DD 1004 MP', VehicleStatus::Sold, '2026-07-01'), '2026-07-20', 99000000, 'Pembeli Juli');
         $this->createExpense('2026-08-10', 2000000);
         $this->createExpense('2026-07-10', 7000000);
 
@@ -75,9 +75,9 @@ class DashboardTest extends TestCase
                 ->where('stockAge.2.count', 1)
                 ->where('stockAge.3.label', '> 90 hari')
                 ->where('stockAge.3.count', 1)
-                ->has('recentSales', 2)
+                ->has('recentSales', 1)
                 ->where('recentSales.0.customer_name', 'Pembeli Agustus')
-                ->has('recentVehicles', 5)
+                ->has('recentVehicles', 2)
             );
 
         $this->assertSame(VehicleStatus::Preparation, $preparationVehicle->refresh()->status);
@@ -88,7 +88,7 @@ class DashboardTest extends TestCase
     {
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
         $this->createSale(
-            $this->createVehicle('DD 2001 MP', VehicleStatus::Sold),
+            $this->createVehicle('DD 2001 MP', VehicleStatus::Sold, '2026-07-01'),
             '2026-07-20',
             15000000,
             paymentType: PaymentType::Credit,
@@ -110,6 +110,10 @@ class DashboardTest extends TestCase
                 ->where('salesTrend.5.sales_value', 138000000)
                 ->has('expenseBreakdown', 1)
                 ->where('expenseBreakdown.0.total', 3000000)
+                ->has('recentSales', 1)
+                ->where('recentSales.0.plate_number', 'DD 2001 MP')
+                ->has('recentVehicles', 1)
+                ->where('recentVehicles.0.plate_number', 'DD 2001 MP')
             );
     }
 
