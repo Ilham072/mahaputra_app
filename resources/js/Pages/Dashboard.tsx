@@ -57,6 +57,8 @@ type DashboardProps = {
         vehicles_total: number;
         vehicles_ready: number;
         vehicles_preparation: number;
+        vehicles_booking: number;
+        vehicles_sold: number;
         sales_count: number;
         sales_value: number;
         vehicle_profit: number;
@@ -106,7 +108,7 @@ export default function Dashboard({
         {
             label: 'Total Inventory',
             value: `${metrics.vehicles_total} unit`,
-            caption: `${metrics.vehicles_ready} Ready - ${metrics.vehicles_preparation} Persiapan`,
+            caption: `${metrics.vehicles_ready} Ready - ${metrics.vehicles_preparation} Persiapan - ${metrics.vehicles_booking} Booking`,
         },
         {
             label: 'Pengeluaran',
@@ -238,6 +240,8 @@ export default function Dashboard({
                         <InventoryStatusCard
                             ready={metrics.vehicles_ready}
                             preparation={metrics.vehicles_preparation}
+                            booking={metrics.vehicles_booking}
+                            sold={metrics.vehicles_sold}
                             total={metrics.vehicles_total}
                             soldThisMonth={metrics.sales_count}
                         />
@@ -485,11 +489,15 @@ function SalesBarChart({ items }: { items: TrendPoint[] }) {
 function InventoryStatusCard({
     ready,
     preparation,
+    booking,
+    sold,
     total,
     soldThisMonth,
 }: {
     ready: number;
     preparation: number;
+    booking: number;
+    sold: number;
     total: number;
     soldThisMonth: number;
 }) {
@@ -506,6 +514,8 @@ function InventoryStatusCard({
                     value={preparation}
                     variant="warning"
                 />
+                <StatusRow label="Booking" value={booking} variant="info" />
+                <StatusRow label="Terjual" value={sold} variant="neutral" />
                 <div className="flex items-center justify-between border-t border-neutral-200 pt-3 text-sm font-semibold">
                     <span>Total Inventory</span>
                     <span>{total}</span>
@@ -817,20 +827,33 @@ function StatusRow({
 }: {
     label: string;
     value: number;
-    variant: 'success' | 'warning';
+    variant: 'success' | 'warning' | 'info' | 'neutral';
 }) {
+    const rowClass = {
+        success: 'bg-green-50',
+        warning: 'bg-amber-50',
+        info: 'bg-blue-50',
+        neutral: 'bg-neutral-50',
+    }[variant];
+    const valueClass = {
+        success: 'text-green-700',
+        warning: 'text-amber-700',
+        info: 'text-blue-700',
+        neutral: 'text-neutral-700',
+    }[variant];
+
     return (
         <div
             className={[
                 'flex items-center justify-between rounded-md px-3 py-2',
-                variant === 'success' ? 'bg-green-50' : 'bg-amber-50',
+                rowClass,
             ].join(' ')}
         >
             <Badge variant={variant}>{label}</Badge>
             <span
                 className={[
                     'text-lg font-bold',
-                    variant === 'success' ? 'text-green-700' : 'text-amber-700',
+                    valueClass,
                 ].join(' ')}
             >
                 {value}

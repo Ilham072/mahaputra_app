@@ -31,6 +31,7 @@ class DashboardTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
         $readyVehicle = $this->createVehicle('DD 1001 MP', VehicleStatus::Ready);
         $preparationVehicle = $this->createVehicle('DD 1002 MP', VehicleStatus::Preparation);
+        $this->createVehicle('DD 1005 MP', VehicleStatus::Booking);
         $soldVehicle = $this->createVehicle('DD 1003 MP', VehicleStatus::Sold);
 
         $this->createSale($soldVehicle, '2026-08-08', 10000000, 'Pembeli Agustus');
@@ -44,9 +45,11 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
                 ->where('period.month', '2026-08')
-                ->where('metrics.vehicles_total', 4)
+                ->where('metrics.vehicles_total', 5)
                 ->where('metrics.vehicles_ready', 1)
                 ->where('metrics.vehicles_preparation', 1)
+                ->where('metrics.vehicles_booking', 1)
+                ->where('metrics.vehicles_sold', 2)
                 ->where('metrics.sales_count', 1)
                 ->where('metrics.sales_value', 150000000)
                 ->where('metrics.vehicle_profit', 10000000)
@@ -64,7 +67,7 @@ class DashboardTest extends TestCase
                 ->where('expenseBreakdown.0.percentage', 100)
                 ->has('recentSales', 2)
                 ->where('recentSales.0.customer_name', 'Pembeli Agustus')
-                ->has('recentVehicles', 4)
+                ->has('recentVehicles', 5)
             );
 
         $this->assertSame(VehicleStatus::Preparation, $preparationVehicle->refresh()->status);

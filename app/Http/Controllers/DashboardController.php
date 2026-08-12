@@ -40,6 +40,8 @@ class DashboardController extends Controller
                 'vehicles_total' => Vehicle::query()->count(),
                 'vehicles_ready' => (int) ($vehicleStatusCounts[VehicleStatus::Ready->value] ?? 0),
                 'vehicles_preparation' => (int) ($vehicleStatusCounts[VehicleStatus::Preparation->value] ?? 0),
+                'vehicles_booking' => (int) ($vehicleStatusCounts[VehicleStatus::Booking->value] ?? 0),
+                'vehicles_sold' => (int) ($vehicleStatusCounts[VehicleStatus::Sold->value] ?? 0),
                 'sales_count' => $periodSalesSummary['sales_count'],
                 'sales_value' => $periodSalesSummary['sales_value'],
                 'vehicle_profit' => $periodSalesSummary['profit_total'],
