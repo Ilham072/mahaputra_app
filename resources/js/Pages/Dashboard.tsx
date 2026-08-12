@@ -9,7 +9,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ReactNode, useState } from 'react';
 
 type TrendPoint = {
@@ -90,10 +90,6 @@ export default function Dashboard({
 }: DashboardProps) {
     const { auth } = usePage<PageProps>().props;
     const isAdmin = auth.user.role === 'admin';
-    const previousMonth = getPreviousMonth(period.month);
-    const nextMonth = getNextMonth(period.month);
-    const isCurrentMonth = period.month === period.current_month;
-    const canGoNext = period.month < period.current_month;
 
     const metricCards: Array<{
         label: string;
@@ -233,16 +229,7 @@ export default function Dashboard({
             <Head title="Dashboard" />
 
             <div className="space-y-5">
-                <PeriodPills
-                    currentMonth={period.current_month}
-                    previousMonth={previousMonth}
-                    nextMonth={canGoNext ? nextMonth : null}
-                    selectedLabel={period.label}
-                    currentLabel={`Bulan Ini (${period.current_label})`}
-                    previousLabel={`Bulan Sebelumnya (${formatMonthLabel(previousMonth)})`}
-                    nextLabel={`Bulan Berikutnya (${formatMonthLabel(nextMonth)})`}
-                    isCurrentMonth={isCurrentMonth}
-                />
+                <PeriodFilter period={period} />
 
                 <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                     {metricCards.map((card) => (
@@ -425,71 +412,114 @@ function RecentSalesCards({ sales }: { sales: RecentSale[] }) {
     );
 }
 
-function PeriodPills({
-    currentMonth,
-    previousMonth,
-    nextMonth,
-    selectedLabel,
-    currentLabel,
-    previousLabel,
-    nextLabel,
-    isCurrentMonth,
-}: {
-    currentMonth: string;
-    previousMonth: string;
-    nextMonth: string | null;
-    selectedLabel: string;
-    currentLabel: string;
-    previousLabel: string;
-    nextLabel: string;
-    isCurrentMonth: boolean;
-}) {
+function PeriodFilter({ period }: { period: DashboardProps['period'] }) {
+    const [selectedYear, selectedMonth] = period.month.split('-');
+    const [year, setYear] = useState(selectedYear);
+    const [month, setMonth] = useState(selectedMonth);
+    const isCurrentMonth = period.month === period.current_month;
+    const years = getYearOptions(period.current_month, period.month);
+
+    function applyFilter() {
+        router.get(
+            route('dashboard'),
+            { month: `${year}-${month}` },
+            { preserveScroll: true },
+        );
+    }
+
     return (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="rounded-lg border border-neutral-200 bg-surface p-4 shadow-card">
             <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Periode:
+                Periode
             </div>
-            <div className="flex flex-wrap gap-2">
-                <Link
-                    href={route('dashboard', { month: currentMonth })}
-                    className={[
-                        'inline-flex h-9 items-center rounded-md px-4 text-sm font-semibold shadow-card focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2',
-                        isCurrentMonth
-                            ? 'bg-brand-black text-white'
-                            : 'border border-neutral-200 bg-surface text-neutral-700 hover:bg-neutral-50',
-                    ].join(' ')}
-                >
-                    {currentLabel}
-                </Link>
-                <Link
-                    href={route('dashboard', { month: previousMonth })}
-                    className="inline-flex h-9 items-center rounded-md border border-neutral-200 bg-surface px-4 text-sm font-semibold text-neutral-700 shadow-card hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
-                >
-                    {previousLabel}
-                </Link>
-                {nextMonth && (
-                    <Link
-                        href={route('dashboard', { month: nextMonth })}
-                        className="inline-flex h-9 items-center rounded-md border border-neutral-200 bg-surface px-4 text-sm font-semibold text-neutral-700 shadow-card hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
+            <div className="mt-3 grid gap-3 sm:grid-cols-[160px_1fr_auto_auto] sm:items-end">
+                <label className="block">
+                    <span className="text-xs font-medium text-neutral-600">
+                        Tahun
+                    </span>
+                    <select
+                        value={year}
+                        onChange={(event) => setYear(event.target.value)}
+                        className="mt-1 h-10 w-full rounded-md border-neutral-300 text-sm shadow-sm focus:border-brand-yellow-500 focus:ring-brand-yellow-500"
                     >
-                        {nextLabel}
+                        {years.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+                <label className="block">
+                    <span className="text-xs font-medium text-neutral-600">
+                        Bulan
+                    </span>
+                    <select
+                        value={month}
+                        onChange={(event) => setMonth(event.target.value)}
+                        className="mt-1 h-10 w-full rounded-md border-neutral-300 text-sm shadow-sm focus:border-brand-yellow-500 focus:ring-brand-yellow-500"
+                    >
+                        {monthOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+                <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={applyFilter}
+                    className="h-10 justify-center"
+                >
+                    Terapkan
+                </Button>
+                {!isCurrentMonth && (
+                    <Link
+                        href={route('dashboard', {
+                            month: period.current_month,
+                        })}
+                        className="inline-flex h-10 items-center justify-center rounded-md border border-neutral-200 bg-surface px-4 text-sm font-semibold text-neutral-700 shadow-card hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
+                    >
+                        Bulan Ini
                     </Link>
                 )}
             </div>
-            {!isCurrentMonth && (
-                <div className="text-xs text-neutral-500">
-                    Menampilkan {selectedLabel}
-                </div>
-            )}
+            <div className="mt-3 text-xs text-neutral-500">
+                Menampilkan {period.label}
+            </div>
         </div>
     );
 }
 
-function getNextMonth(month: string) {
-    const [year, monthNumber] = month.split('-').map(Number);
-    const date = new Date(year, monthNumber, 1);
+const monthOptions = [
+    { value: '01', label: 'Januari' },
+    { value: '02', label: 'Februari' },
+    { value: '03', label: 'Maret' },
+    { value: '04', label: 'April' },
+    { value: '05', label: 'Mei' },
+    { value: '06', label: 'Juni' },
+    { value: '07', label: 'Juli' },
+    { value: '08', label: 'Agustus' },
+    { value: '09', label: 'September' },
+    { value: '10', label: 'Oktober' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'Desember' },
+];
 
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+function getYearOptions(currentMonth: string, selectedMonth: string) {
+    const currentYear = Number(currentMonth.split('-')[0]);
+    const selectedYear = Number(selectedMonth.split('-')[0]);
+    const years = new Set<number>();
+
+    for (let year = currentYear; year >= currentYear - 5; year--) {
+        years.add(year);
+    }
+
+    years.add(selectedYear);
+
+    return Array.from(years)
+        .sort((a, b) => b - a)
+        .map(String);
 }
 
 function MetricCard({
@@ -1022,33 +1052,6 @@ function UnavailableRows({
             <p className="text-xs text-amber-700">{note}</p>
         </div>
     );
-}
-
-function getPreviousMonth(month: string) {
-    const [year, monthNumber] = month.split('-').map(Number);
-    const date = new Date(year, monthNumber - 2, 1);
-
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-}
-
-function formatMonthLabel(month: string) {
-    const [, monthNumber] = month.split('-').map(Number);
-    const labels = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'Mei',
-        'Jun',
-        'Jul',
-        'Agu',
-        'Sep',
-        'Okt',
-        'Nov',
-        'Des',
-    ];
-
-    return labels[monthNumber - 1] ?? month;
 }
 
 function formatChartMonth(label: string) {
