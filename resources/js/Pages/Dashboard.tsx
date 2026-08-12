@@ -299,16 +299,56 @@ export default function Dashboard({
                     {recentVehicles.length === 0 ? (
                         <EmptyState title="Belum ada kendaraan." />
                     ) : (
-                        <DataTable
-                            rows={recentVehicles}
-                            columns={recentVehicleColumns}
-                            getRowKey={(vehicle) => vehicle.id}
-                            minWidth="min-w-full"
-                        />
+                        <>
+                            <RecentVehiclesCards vehicles={recentVehicles} />
+                            <div className="hidden sm:block">
+                                <DataTable
+                                    rows={recentVehicles}
+                                    columns={recentVehicleColumns}
+                                    getRowKey={(vehicle) => vehicle.id}
+                                    minWidth="min-w-full"
+                                />
+                            </div>
+                        </>
                     )}
                 </DashboardTableCard>
             </div>
         </AuthenticatedLayout>
+    );
+}
+
+function RecentVehiclesCards({ vehicles }: { vehicles: RecentVehicle[] }) {
+    return (
+        <div className="divide-y divide-neutral-200 sm:hidden">
+            {vehicles.map((vehicle) => (
+                <Link
+                    key={vehicle.id}
+                    href={route('vehicles.show', vehicle.id)}
+                    className="block p-4 transition hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-yellow-500"
+                >
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                            <div className="text-sm font-semibold text-neutral-950">
+                                {vehicle.vehicle}
+                            </div>
+                            <div className="mt-1 text-xs text-neutral-500">
+                                {vehicle.plate_number}
+                            </div>
+                        </div>
+                        <StatusBadge type="vehicle" value={vehicle.status} />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between rounded-md bg-neutral-50 px-3 py-2">
+                        <span className="text-xs font-medium uppercase text-neutral-500">
+                            Harga Penawaran
+                        </span>
+                        <CurrencyDisplay
+                            value={vehicle.asking_price}
+                            className="font-semibold text-neutral-950"
+                        />
+                    </div>
+                </Link>
+            ))}
+        </div>
     );
 }
 
@@ -455,7 +495,7 @@ function SalesBarChart({ items }: { items: TrendPoint[] }) {
                 </p>
             </div>
             <CardContent>
-                <div className="relative h-72 border-b border-neutral-200">
+                <div className="relative h-56 border-b border-neutral-200 sm:h-72">
                     <div className="grid h-full grid-cols-6 items-end gap-3 px-2 pt-4 sm:gap-7 sm:px-6">
                         {items.map((item) => {
                             const height = `${Math.max((item.sales_count / maxValue) * 100, item.sales_count > 0 ? 8 : 3)}%`;
@@ -470,7 +510,7 @@ function SalesBarChart({ items }: { items: TrendPoint[] }) {
                                 >
                                     <div
                                         className={[
-                                            'flex w-12 items-start justify-center rounded-t-md px-1 pt-2 text-sm font-bold sm:w-16',
+                                            'flex w-full max-w-10 items-start justify-center rounded-t-md px-1 pt-2 text-sm font-bold sm:max-w-16',
                                             active
                                                 ? 'bg-brand-yellow-500 text-brand-black'
                                                 : 'bg-neutral-200 text-neutral-500',
@@ -651,7 +691,7 @@ function ProfitLineCard({ items }: { items: TrendPoint[] }) {
                 </div>
             </div>
             <CardContent>
-                <div className="relative h-72">
+                <div className="relative h-56 sm:h-72">
                     <div className="absolute inset-x-0 top-8 border-t border-neutral-100" />
                     <div className="absolute inset-x-0 top-1/2 border-t border-neutral-100" />
                     <div className="absolute inset-x-0 bottom-8 border-t border-neutral-100" />
