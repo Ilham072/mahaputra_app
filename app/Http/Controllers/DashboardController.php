@@ -20,6 +20,7 @@ class DashboardController extends Controller
     {
         $periodStart = $this->periodStart($request);
         $periodEnd = $periodStart->endOfMonth();
+        $currentMonth = CarbonImmutable::now()->startOfMonth();
 
         $vehicleStatusCounts = Vehicle::query()
             ->select('status', DB::raw('count(*) as aggregate'))
@@ -36,6 +37,8 @@ class DashboardController extends Controller
                 'from' => $periodStart->toDateString(),
                 'to' => $periodEnd->toDateString(),
                 'label' => $this->monthLabel($periodStart),
+                'current_month' => $currentMonth->format('Y-m'),
+                'current_label' => $this->monthLabel($currentMonth),
             ],
             'metrics' => [
                 'vehicles_total' => Vehicle::query()->count(),

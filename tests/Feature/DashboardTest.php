@@ -46,6 +46,8 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
                 ->where('period.month', '2026-08')
+                ->where('period.current_month', '2026-08')
+                ->where('period.current_label', 'Agustus 2026')
                 ->where('metrics.vehicles_total', 6)
                 ->where('metrics.vehicles_ready', 2)
                 ->where('metrics.vehicles_preparation', 1)
@@ -86,6 +88,8 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_can_be_filtered_by_month(): void
     {
+        $this->travelTo('2026-08-15 10:00:00');
+
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
         $this->createSale(
             $this->createVehicle('DD 2001 MP', VehicleStatus::Sold, '2026-07-01'),
@@ -102,6 +106,8 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('period.month', '2026-07')
+                ->where('period.current_month', '2026-08')
+                ->where('period.current_label', 'Agustus 2026')
                 ->where('metrics.sales_count', 1)
                 ->where('metrics.sales_value', 138000000)
                 ->where('metrics.vehicle_profit', 15000000)

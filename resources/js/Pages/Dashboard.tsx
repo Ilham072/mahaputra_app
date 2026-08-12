@@ -58,6 +58,8 @@ type DashboardProps = {
         from: string;
         to: string;
         label: string;
+        current_month: string;
+        current_label: string;
     };
     metrics: {
         vehicles_total: number;
@@ -89,6 +91,9 @@ export default function Dashboard({
     const { auth } = usePage<PageProps>().props;
     const isAdmin = auth.user.role === 'admin';
     const previousMonth = getPreviousMonth(period.month);
+    const nextMonth = getNextMonth(period.month);
+    const isCurrentMonth = period.month === period.current_month;
+    const canGoNext = period.month < period.current_month;
 
     const metricCards: Array<{
         label: string;
@@ -229,10 +234,14 @@ export default function Dashboard({
 
             <div className="space-y-5">
                 <PeriodPills
-                    currentMonth={period.month}
+                    currentMonth={period.current_month}
                     previousMonth={previousMonth}
-                    currentLabel={`Bulan Ini (${period.label})`}
+                    nextMonth={canGoNext ? nextMonth : null}
+                    selectedLabel={period.label}
+                    currentLabel={`Bulan Ini (${period.current_label})`}
                     previousLabel={`Bulan Sebelumnya (${formatMonthLabel(previousMonth)})`}
+                    nextLabel={`Bulan Berikutnya (${formatMonthLabel(nextMonth)})`}
+                    isCurrentMonth={isCurrentMonth}
                 />
 
                 <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -419,13 +428,21 @@ function RecentSalesCards({ sales }: { sales: RecentSale[] }) {
 function PeriodPills({
     currentMonth,
     previousMonth,
+    nextMonth,
+    selectedLabel,
     currentLabel,
     previousLabel,
+    nextLabel,
+    isCurrentMonth,
 }: {
     currentMonth: string;
     previousMonth: string;
+    nextMonth: string | null;
+    selectedLabel: string;
     currentLabel: string;
     previousLabel: string;
+    nextLabel: string;
+    isCurrentMonth: boolean;
 }) {
     return (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -435,7 +452,12 @@ function PeriodPills({
             <div className="flex flex-wrap gap-2">
                 <Link
                     href={route('dashboard', { month: currentMonth })}
-                    className="inline-flex h-9 items-center rounded-md bg-brand-black px-4 text-sm font-semibold text-white shadow-card focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
+                    className={[
+                        'inline-flex h-9 items-center rounded-md px-4 text-sm font-semibold shadow-card focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2',
+                        isCurrentMonth
+                            ? 'bg-brand-black text-white'
+                            : 'border border-neutral-200 bg-surface text-neutral-700 hover:bg-neutral-50',
+                    ].join(' ')}
                 >
                     {currentLabel}
                 </Link>
@@ -445,9 +467,29 @@ function PeriodPills({
                 >
                     {previousLabel}
                 </Link>
+                {nextMonth && (
+                    <Link
+                        href={route('dashboard', { month: nextMonth })}
+                        className="inline-flex h-9 items-center rounded-md border border-neutral-200 bg-surface px-4 text-sm font-semibold text-neutral-700 shadow-card hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-yellow-500 focus:ring-offset-2"
+                    >
+                        {nextLabel}
+                    </Link>
+                )}
             </div>
+            {!isCurrentMonth && (
+                <div className="text-xs text-neutral-500">
+                    Menampilkan {selectedLabel}
+                </div>
+            )}
         </div>
     );
+}
+
+function getNextMonth(month: string) {
+    const [year, monthNumber] = month.split('-').map(Number);
+    const date = new Date(year, monthNumber, 1);
+
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function MetricCard({
