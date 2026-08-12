@@ -5,7 +5,7 @@ export default function Guest({ children }: PropsWithChildren) {
     return (
         <div className="flex min-h-screen flex-col items-center bg-brand-black px-4 pt-6 sm:justify-center sm:pt-0">
             <div className="flex flex-col items-center gap-3">
-                <ApplicationLogo className="h-16 w-16 fill-current text-brand-yellow-500" />
+                <ApplicationLogo className="h-16 w-24 object-contain" />
                 <div className="text-center">
                     <p className="text-lg font-semibold text-white">
                         Mahaputra Apps
