@@ -444,6 +444,7 @@ function MetricCard({
 
 function SalesBarChart({ items }: { items: TrendPoint[] }) {
     const maxValue = Math.max(...items.map((item) => item.sales_count), 1);
+    const hasData = items.some((item) => item.sales_count > 0);
 
     return (
         <Card>
@@ -454,30 +455,39 @@ function SalesBarChart({ items }: { items: TrendPoint[] }) {
                 </p>
             </div>
             <CardContent>
-                <div className="grid h-72 grid-cols-6 items-end gap-3 border-b border-neutral-200 px-2 pt-4 sm:gap-7 sm:px-6">
-                    {items.map((item) => {
-                        const height = `${Math.max((item.sales_count / maxValue) * 100, item.sales_count > 0 ? 8 : 3)}%`;
-                        const active = item.sales_count === maxValue && item.sales_count > 0;
+                <div className="relative h-72 border-b border-neutral-200">
+                    <div className="grid h-full grid-cols-6 items-end gap-3 px-2 pt-4 sm:gap-7 sm:px-6">
+                        {items.map((item) => {
+                            const height = `${Math.max((item.sales_count / maxValue) * 100, item.sales_count > 0 ? 8 : 3)}%`;
+                            const active =
+                                item.sales_count === maxValue &&
+                                item.sales_count > 0;
 
-                        return (
-                            <div
-                                key={item.month}
-                                className="flex h-full min-w-0 flex-col items-center justify-end"
-                            >
+                            return (
                                 <div
-                                    className={[
-                                        'flex w-12 items-start justify-center rounded-t-md px-1 pt-2 text-sm font-bold sm:w-16',
-                                        active
-                                            ? 'bg-brand-yellow-500 text-brand-black'
-                                            : 'bg-neutral-200 text-neutral-500',
-                                    ].join(' ')}
-                                    style={{ height }}
+                                    key={item.month}
+                                    className="flex h-full min-w-0 flex-col items-center justify-end"
                                 >
-                                    {item.sales_count}
+                                    <div
+                                        className={[
+                                            'flex w-12 items-start justify-center rounded-t-md px-1 pt-2 text-sm font-bold sm:w-16',
+                                            active
+                                                ? 'bg-brand-yellow-500 text-brand-black'
+                                                : 'bg-neutral-200 text-neutral-500',
+                                        ].join(' ')}
+                                        style={{ height }}
+                                    >
+                                        {item.sales_count}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
+                    {!hasData && (
+                        <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-neutral-500">
+                            Belum ada penjualan pada 6 bulan terakhir.
+                        </div>
+                    )}
                 </div>
                 <div className="grid grid-cols-6 gap-2 px-2 pt-3 sm:px-6">
                     {items.map((item) => (
@@ -540,37 +550,45 @@ function InventoryStatusCard({
 }
 
 function StockAgeCard({ items }: { items: StockAgeItem[] }) {
+    const hasData = items.some((item) => item.count > 0);
+
     return (
         <SideCard
             title="Umur Stok"
             href={route('vehicles.index')}
             linkLabel="Lihat Inventory"
         >
-            <div className="space-y-3">
-                {items.map((item) => (
-                    <div key={item.label} className="space-y-1">
-                        <div className="flex items-center justify-between gap-3 text-xs">
-                            <span className="text-neutral-600">
-                                {item.label}
-                            </span>
-                            <span className="shrink-0 font-semibold text-neutral-950">
-                                {item.count} kendaraan
-                            </span>
+            {hasData ? (
+                <div className="space-y-3">
+                    {items.map((item) => (
+                        <div key={item.label} className="space-y-1">
+                            <div className="flex items-center justify-between gap-3 text-xs">
+                                <span className="text-neutral-600">
+                                    {item.label}
+                                </span>
+                                <span className="shrink-0 font-semibold text-neutral-950">
+                                    {item.count} kendaraan
+                                </span>
+                            </div>
+                            <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100">
+                                <div
+                                    className={[
+                                        'h-full rounded-full',
+                                        item.label === '> 90 hari'
+                                            ? 'bg-red-400'
+                                            : 'bg-neutral-300',
+                                    ].join(' ')}
+                                    style={{ width: `${item.percentage}%` }}
+                                />
+                            </div>
                         </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100">
-                            <div
-                                className={[
-                                    'h-full rounded-full',
-                                    item.label === '> 90 hari'
-                                        ? 'bg-red-400'
-                                        : 'bg-neutral-300',
-                                ].join(' ')}
-                                style={{ width: `${item.percentage}%` }}
-                            />
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-xs text-neutral-500">
+                    Belum ada stok aktif pada periode ini.
+                </p>
+            )}
             {items.some((item) => item.label === '> 90 hari' && item.count > 0) && (
                 <p className="mt-3 text-xs font-semibold text-red-600">
                     Ada kendaraan lebih dari 90 hari belum terjual.
@@ -596,6 +614,7 @@ function ProfitLineCard({ items }: { items: TrendPoint[] }) {
         return { ...item, x, y };
     });
     const polyline = points.map((point) => `${point.x},${point.y}`).join(' ');
+    const hasMetricData = items.some((item) => Math.abs(item[metric]) > 0);
 
     return (
         <Card>
@@ -636,32 +655,41 @@ function ProfitLineCard({ items }: { items: TrendPoint[] }) {
                     <div className="absolute inset-x-0 top-8 border-t border-neutral-100" />
                     <div className="absolute inset-x-0 top-1/2 border-t border-neutral-100" />
                     <div className="absolute inset-x-0 bottom-8 border-t border-neutral-100" />
-                    <svg
-                        viewBox="0 0 100 100"
-                        preserveAspectRatio="none"
-                        className="absolute inset-0 h-full w-full overflow-visible"
-                        aria-hidden="true"
-                    >
-                        <polyline
-                            points={polyline}
-                            fill="none"
-                            stroke="#EAB308"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            vectorEffect="non-scaling-stroke"
-                        />
-                    </svg>
-                    {points.map((point) => (
-                        <div
-                            key={`${point.month}-dot`}
-                            className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-brand-yellow-500 bg-surface"
-                            style={{
-                                left: `${point.x}%`,
-                                top: `${point.y}%`,
-                            }}
-                        />
-                    ))}
+                    {hasMetricData ? (
+                        <>
+                            <svg
+                                viewBox="0 0 100 100"
+                                preserveAspectRatio="none"
+                                className="absolute inset-0 h-full w-full overflow-visible"
+                                aria-hidden="true"
+                            >
+                                <polyline
+                                    points={polyline}
+                                    fill="none"
+                                    stroke="#EAB308"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    vectorEffect="non-scaling-stroke"
+                                />
+                            </svg>
+                            {points.map((point) => (
+                                <div
+                                    key={`${point.month}-dot`}
+                                    className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-brand-yellow-500 bg-surface"
+                                    style={{
+                                        left: `${point.x}%`,
+                                        top: `${point.y}%`,
+                                    }}
+                                />
+                            ))}
+                        </>
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-neutral-500">
+                            Belum ada data {metricLabel.toLowerCase()} pada 6
+                            bulan terakhir.
+                        </div>
+                    )}
                 </div>
                 <div className="grid grid-cols-6 gap-2 pt-2">
                     {items.map((item) => (
