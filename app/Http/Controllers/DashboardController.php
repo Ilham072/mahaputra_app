@@ -51,6 +51,7 @@ class DashboardController extends Controller
             ],
             'salesTrend' => $this->salesTrend($periodStart, $salesReport),
             'expenseBreakdown' => $this->expenseBreakdown($periodStart, $periodEnd),
+            'stockAge' => $this->stockAge($periodEnd),
             'recentSales' => Sale::query()
                 ->with(['vehicle.brand', 'customer', 'area'])
                 ->latest('sale_date')
@@ -150,6 +151,49 @@ class DashboardController extends Controller
                 'percentage' => (int) round(($row['total'] / $total) * 100),
             ])
             ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{label: string, count: int, percentage: int}>
+     */
+    private function stockAge(CarbonImmutable $periodEnd): array
+    {
+        $buckets = [
+            ['label' => '0-30 hari', 'min' => 0, 'max' => 30, 'count' => 0],
+            ['label' => '31-60 hari', 'min' => 31, 'max' => 60, 'count' => 0],
+            ['label' => '61-90 hari', 'min' => 61, 'max' => 90, 'count' => 0],
+            ['label' => '> 90 hari', 'min' => 91, 'max' => null, 'count' => 0],
+        ];
+
+        Vehicle::query()
+            ->whereIn('status', [
+                VehicleStatus::Preparation->value,
+                VehicleStatus::Ready->value,
+                VehicleStatus::Booking->value,
+            ])
+            ->whereDate('purchase_date', '<=', $periodEnd->toDateString())
+            ->get(['purchase_date'])
+            ->each(function (Vehicle $vehicle) use (&$buckets, $periodEnd): void {
+                $age = (int) $vehicle->purchase_date->startOfDay()->diffInDays($periodEnd->startOfDay());
+
+                foreach ($buckets as &$bucket) {
+                    if ($age >= $bucket['min'] && ($bucket['max'] === null || $age <= $bucket['max'])) {
+                        $bucket['count']++;
+
+                        break;
+                    }
+                }
+            });
+
+        $total = max(collect($buckets)->sum('count'), 1);
+
+        return collect($buckets)
+            ->map(fn (array $bucket): array => [
+                'label' => $bucket['label'],
+                'count' => $bucket['count'],
+                'percentage' => (int) round(($bucket['count'] / $total) * 100),
+            ])
             ->all();
     }
 

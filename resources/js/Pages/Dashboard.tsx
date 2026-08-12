@@ -46,6 +46,12 @@ type ExpenseBreakdownItem = {
     percentage: number;
 };
 
+type StockAgeItem = {
+    label: string;
+    count: number;
+    percentage: number;
+};
+
 type DashboardProps = {
     period: {
         month: string;
@@ -66,6 +72,7 @@ type DashboardProps = {
     };
     salesTrend: TrendPoint[];
     expenseBreakdown: ExpenseBreakdownItem[];
+    stockAge: StockAgeItem[];
     recentSales: RecentSale[];
     recentVehicles: RecentVehicle[];
 };
@@ -75,6 +82,7 @@ export default function Dashboard({
     metrics,
     salesTrend,
     expenseBreakdown,
+    stockAge,
     recentSales,
     recentVehicles,
 }: DashboardProps) {
@@ -245,7 +253,7 @@ export default function Dashboard({
                             total={metrics.vehicles_total}
                             soldThisMonth={metrics.sales_count}
                         />
-                        <StockAgeCard />
+                        <StockAgeCard items={stockAge} />
                     </div>
                 </section>
 
@@ -531,22 +539,43 @@ function InventoryStatusCard({
     );
 }
 
-function StockAgeCard() {
+function StockAgeCard({ items }: { items: StockAgeItem[] }) {
     return (
         <SideCard
             title="Umur Stok"
             href={route('vehicles.index')}
             linkLabel="Lihat Inventory"
         >
-            <UnavailableRows
-                lines={[
-                    '0-30 hari',
-                    '31-60 hari',
-                    '61-90 hari',
-                    '> 90 hari',
-                ]}
-                note="Data umur stok belum tersedia dari backend."
-            />
+            <div className="space-y-3">
+                {items.map((item) => (
+                    <div key={item.label} className="space-y-1">
+                        <div className="flex items-center justify-between gap-3 text-xs">
+                            <span className="text-neutral-600">
+                                {item.label}
+                            </span>
+                            <span className="shrink-0 font-semibold text-neutral-950">
+                                {item.count} kendaraan
+                            </span>
+                        </div>
+                        <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100">
+                            <div
+                                className={[
+                                    'h-full rounded-full',
+                                    item.label === '> 90 hari'
+                                        ? 'bg-red-400'
+                                        : 'bg-neutral-300',
+                                ].join(' ')}
+                                style={{ width: `${item.percentage}%` }}
+                            />
+                        </div>
+                    </div>
+                ))}
+            </div>
+            {items.some((item) => item.label === '> 90 hari' && item.count > 0) && (
+                <p className="mt-3 text-xs font-semibold text-red-600">
+                    Ada kendaraan lebih dari 90 hari belum terjual.
+                </p>
+            )}
         </SideCard>
     );
 }

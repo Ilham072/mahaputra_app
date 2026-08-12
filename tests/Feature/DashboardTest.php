@@ -29,9 +29,10 @@ class DashboardTest extends TestCase
         $this->travelTo('2026-08-15 10:00:00');
 
         $admin = User::factory()->create(['role' => UserRole::Admin->value]);
-        $readyVehicle = $this->createVehicle('DD 1001 MP', VehicleStatus::Ready);
-        $preparationVehicle = $this->createVehicle('DD 1002 MP', VehicleStatus::Preparation);
-        $this->createVehicle('DD 1005 MP', VehicleStatus::Booking);
+        $readyVehicle = $this->createVehicle('DD 1001 MP', VehicleStatus::Ready, '2026-08-01');
+        $preparationVehicle = $this->createVehicle('DD 1002 MP', VehicleStatus::Preparation, '2026-07-20');
+        $this->createVehicle('DD 1005 MP', VehicleStatus::Booking, '2026-05-01');
+        $this->createVehicle('DD 1006 MP', VehicleStatus::Ready, '2026-06-10');
         $soldVehicle = $this->createVehicle('DD 1003 MP', VehicleStatus::Sold);
 
         $this->createSale($soldVehicle, '2026-08-08', 10000000, 'Pembeli Agustus');
@@ -45,8 +46,8 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
                 ->where('period.month', '2026-08')
-                ->where('metrics.vehicles_total', 5)
-                ->where('metrics.vehicles_ready', 1)
+                ->where('metrics.vehicles_total', 6)
+                ->where('metrics.vehicles_ready', 2)
                 ->where('metrics.vehicles_preparation', 1)
                 ->where('metrics.vehicles_booking', 1)
                 ->where('metrics.vehicles_sold', 2)
@@ -65,6 +66,15 @@ class DashboardTest extends TestCase
                 ->where('expenseBreakdown.0.name', 'Listrik')
                 ->where('expenseBreakdown.0.total', 2000000)
                 ->where('expenseBreakdown.0.percentage', 100)
+                ->has('stockAge', 4)
+                ->where('stockAge.0.label', '0-30 hari')
+                ->where('stockAge.0.count', 1)
+                ->where('stockAge.1.label', '31-60 hari')
+                ->where('stockAge.1.count', 1)
+                ->where('stockAge.2.label', '61-90 hari')
+                ->where('stockAge.2.count', 1)
+                ->where('stockAge.3.label', '> 90 hari')
+                ->where('stockAge.3.count', 1)
                 ->has('recentSales', 2)
                 ->where('recentSales.0.customer_name', 'Pembeli Agustus')
                 ->has('recentVehicles', 5)
@@ -116,12 +126,15 @@ class DashboardTest extends TestCase
             );
     }
 
-    private function createVehicle(string $plateNumber, VehicleStatus $status): Vehicle
-    {
+    private function createVehicle(
+        string $plateNumber,
+        VehicleStatus $status,
+        string $purchaseDate = '2026-08-01',
+    ): Vehicle {
         $brand = VehicleBrand::query()->firstOrCreate(['name' => 'Toyota']);
 
         return Vehicle::query()->create([
-            'purchase_date' => '2026-08-01',
+            'purchase_date' => $purchaseDate,
             'brand_id' => $brand->id,
             'type' => 'Avanza',
             'plate_number' => $plateNumber,
